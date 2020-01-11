@@ -25,6 +25,7 @@ program : expr END	{
 				$$ = $2;
 				printf("Answer : %d\n",evaluate($1));
 				code_gen($1);
+				prefix($1);
 				exit(1);
 			}
 		;

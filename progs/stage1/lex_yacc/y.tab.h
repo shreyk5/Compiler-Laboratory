@@ -66,7 +66,7 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 10 "exprtree_infix.y" /* yacc.c:1909  */
+#line 10 "exprtree.y" /* yacc.c:1909  */
 
 	struct tnode *node;
 	

@@ -83,3 +83,40 @@ int code_gen(struct tnode* t)
 
     return p;
 }
+
+void prefix(struct tnode* t)
+{
+    if(!t)
+        return;
+
+    if(t->op)
+    {
+        printf("%c ",*t->op);
+    }
+    else
+    {
+        printf("%d ",t->val);
+    }
+
+    prefix(t->left);
+    prefix(t->right);
+}
+
+void postfix(struct tnode* t)
+{
+    if(!t)
+        return;
+    
+    postfix(t->left);
+    postfix(t->right);
+        
+    if(t->op)
+    {
+        printf("%c ",*t->op);
+    }
+    else
+    {
+        printf("%d ",t->val);
+    }
+
+}
