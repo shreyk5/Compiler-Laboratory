@@ -1,3 +1,6 @@
+A Compiler which translates eXpL(Experimental Language) to XSM Assembly Language built as a part of Compilers Laboratory Course in S6
+
+
 XSM simulator for eXpl
 
 Usage 
