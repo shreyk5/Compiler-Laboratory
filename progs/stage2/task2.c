@@ -196,3 +196,89 @@ void GenerateCode(struct tnode* t)
 
 	GenerateExit();
 }
+
+int arr[26];
+
+int EvaluateExpression(struct tnode* t)
+{
+	if(t->type == var_node)
+	{
+		int idx = t->varname[0] - 'a';
+		return arr[idx];
+	}
+	else if(t->type == num_node)
+	{
+		return t->val;
+	}
+	else	//operator 
+	{
+		switch(t->type)
+		{
+			case plus_node:
+				return EvaluateExpression(t->left)+EvaluateExpression(t->right);
+				break;
+
+			case minus_node:
+				return EvaluateExpression(t->left)-EvaluateExpression(t->right);
+				break;
+
+			case mul_node:
+				return EvaluateExpression(t->left)*EvaluateExpression(t->right);
+				break;
+
+			case div_node:
+				return EvaluateExpression(t->left)/EvaluateExpression(t->right);
+				break;
+		}
+	}
+}
+
+void EvaluateAssignment(struct tnode* t)
+{
+	int dest_idx = t->left->varname[0] - 'a';
+	arr[dest_idx] = EvaluateExpression(t->right);
+}
+
+void EvaluateRead(struct tnode* t)
+{
+	int idx = t->left->varname[0] - 'a';
+	scanf("%d",&arr[idx]);
+}
+
+void EvaluateWrite(struct tnode* t)
+{
+	int res = EvaluateExpression(t->left);
+	printf("%d\n",res);
+}
+
+void EvaluateTree(struct tnode* t)
+{
+	if(t == NULL)
+		return;
+
+	if(t->type == connector_node)
+	{
+		EvaluateTree(t->left);
+		EvaluateTree(t->right);
+	}
+
+	else if(t->type == assign_node)
+	{
+		EvaluateAssignment(t);
+	}
+
+	else if(t->type == read_node)
+	{
+		EvaluateRead(t);
+	}
+
+	else if(t->type == write_node)
+	{
+		EvaluateWrite(t);
+	}
+}
+
+void Interpret(struct tnode* t)
+{
+	EvaluateTree(t);
+}

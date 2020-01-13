@@ -4,8 +4,9 @@
     #include<string.h>
     #include "task1.h"
     FILE *fp;
+    FILE *fp_read;
     #include "task2.c"
-    
+    extern FILE* yyin;
     int yylex(void); 
 %}
 
@@ -22,7 +23,7 @@
 
 
 %%
-program : START SLIST END   {GenerateCode($2);}
+program : START SLIST END   {GenerateCode($2); Interpret($2);}
         | START END         {}
         ;
 
@@ -58,6 +59,8 @@ void yyerror(char *S)
 int main()
 {
     fp = fopen("/home/shrey/xsm_expl/xsm_progs/task2.xsm","w");
+    fp_read = fopen("input.txt","r");
+    yyin = fp_read; 
     yyparse();
 
     return 0;

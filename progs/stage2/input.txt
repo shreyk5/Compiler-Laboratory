@@ -1,0 +1,7 @@
+begin
+read(a)
+read(b)
+write((a)*b)
+read(c)
+write(c/a)
+end
