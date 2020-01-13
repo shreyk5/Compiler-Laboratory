@@ -1,7 +1,7 @@
 begin
-read(a)
-read(b)
-write((a)*b)
-read(c)
-write(c/a)
+read(a);
+read(b);
+write((a)*b);
+c = a+(b);
+write(c/a);
 end

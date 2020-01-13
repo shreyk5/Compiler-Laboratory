@@ -36,10 +36,9 @@ stmt : asgStmt      {$$ = $1;}
     | outputStmt    {$$ = $1;}
     ;
 
-asgStmt : ASSIGN expr               {$$ = createTree(0,assign_node,NULL,$1,$2);};
-asgStmt : '(' ID ')' ASSIGN expr    {$$ = createTree(0,assign_node,NULL,$2,$5);};
-inputStmt : READ '(' ID ')'         {$$ = createTree(0,read_node,NULL,$3,NULL);};
-outputStmt : WRITE '(' expr ')'     {$$ = createTree(0,write_node,NULL,$3,NULL);};
+asgStmt : ASSIGN expr ';'           {$$ = createTree(0,assign_node,NULL,$1,$2);};
+inputStmt : READ '(' ID ')' ';'     {$$ = createTree(0,read_node,NULL,$3,NULL);};
+outputStmt : WRITE '(' expr ')' ';' {$$ = createTree(0,write_node,NULL,$3,NULL);};
 
 expr : expr PLUS expr   {$$ = createTree(0,plus_node,NULL,$1,$3);}
     |  expr MINUS expr  {$$ = createTree(0,minus_node,NULL,$1,$3);}

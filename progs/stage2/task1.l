@@ -27,7 +27,7 @@ asgg [a-z][ \t]*[=]
 "*"     {return MUL;}
 "/"     {return DIV;}
 "="     {return ASSIGN;}
-[()]    {return *yytext;}
+[();]   {return *yytext;}
 [\n]    {}
 [\t]    {}
 .       {}
