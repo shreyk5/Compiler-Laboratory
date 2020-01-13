@@ -76,7 +76,7 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 12 "task1.y" /* yacc.c:1909  */
+#line 13 "task1.y" /* yacc.c:1909  */
 
     struct tnode* node;
 

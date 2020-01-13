@@ -3,7 +3,8 @@
     #include<stdlib.h>
     #include<string.h>
     #include "task1.h"
-    #include "task1.c"
+    FILE *fp;
+    #include "task2.c"
     
     int yylex(void); 
 %}
@@ -21,7 +22,7 @@
 
 
 %%
-program : START SLIST END   {print($2);}
+program : START SLIST END   {GenerateCode($2);}
         | START END         {}
         ;
 
@@ -56,6 +57,7 @@ void yyerror(char *S)
 
 int main()
 {
+    fp = fopen("/home/shrey/xsm_expl/xsm_progs/task2.xsm","w");
     yyparse();
 
     return 0;

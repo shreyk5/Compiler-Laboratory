@@ -68,11 +68,12 @@
     #include<stdlib.h>
     #include<string.h>
     #include "task1.h"
-    #include "task1.c"
+    FILE *fp;
+    #include "task2.c"
     
     int yylex(void); 
 
-#line 76 "y.tab.c" /* yacc.c:339  */
+#line 77 "y.tab.c" /* yacc.c:339  */
 
 # ifndef YY_NULLPTR
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -138,11 +139,11 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 12 "task1.y" /* yacc.c:355  */
+#line 13 "task1.y" /* yacc.c:355  */
 
     struct tnode* node;
 
-#line 146 "y.tab.c" /* yacc.c:355  */
+#line 147 "y.tab.c" /* yacc.c:355  */
 };
 
 typedef union YYSTYPE YYSTYPE;
@@ -159,7 +160,7 @@ int yyparse (void);
 
 /* Copy the second part of user declarations.  */
 
-#line 163 "y.tab.c" /* yacc.c:358  */
+#line 164 "y.tab.c" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -457,8 +458,8 @@ static const yytype_uint8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    24,    24,    25,    28,    29,    32,    33,    34,    37,
-      38,    39,    40,    42,    43,    44,    45,    46,    47,    48
+       0,    25,    25,    26,    29,    30,    33,    34,    35,    38,
+      39,    40,    41,    43,    44,    45,    46,    47,    48,    49
 };
 #endif
 
@@ -1245,115 +1246,115 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 24 "task1.y" /* yacc.c:1646  */
-    {print((yyvsp[-1].node));}
-#line 1251 "y.tab.c" /* yacc.c:1646  */
+#line 25 "task1.y" /* yacc.c:1646  */
+    {GenerateCode((yyvsp[-1].node));}
+#line 1252 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 3:
-#line 25 "task1.y" /* yacc.c:1646  */
+#line 26 "task1.y" /* yacc.c:1646  */
     {}
-#line 1257 "y.tab.c" /* yacc.c:1646  */
+#line 1258 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 4:
-#line 28 "task1.y" /* yacc.c:1646  */
+#line 29 "task1.y" /* yacc.c:1646  */
     {(yyval.node) = (yyvsp[0].node);}
-#line 1263 "y.tab.c" /* yacc.c:1646  */
+#line 1264 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 5:
-#line 29 "task1.y" /* yacc.c:1646  */
+#line 30 "task1.y" /* yacc.c:1646  */
     {(yyval.node) = createTree(0,connector_node,NULL,(yyvsp[-1].node),(yyvsp[0].node));}
-#line 1269 "y.tab.c" /* yacc.c:1646  */
+#line 1270 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 6:
-#line 32 "task1.y" /* yacc.c:1646  */
+#line 33 "task1.y" /* yacc.c:1646  */
     {(yyval.node) = (yyvsp[0].node);}
-#line 1275 "y.tab.c" /* yacc.c:1646  */
+#line 1276 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 7:
-#line 33 "task1.y" /* yacc.c:1646  */
+#line 34 "task1.y" /* yacc.c:1646  */
     {(yyval.node) = (yyvsp[0].node);}
-#line 1281 "y.tab.c" /* yacc.c:1646  */
+#line 1282 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 8:
-#line 34 "task1.y" /* yacc.c:1646  */
+#line 35 "task1.y" /* yacc.c:1646  */
     {(yyval.node) = (yyvsp[0].node);}
-#line 1287 "y.tab.c" /* yacc.c:1646  */
+#line 1288 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 9:
-#line 37 "task1.y" /* yacc.c:1646  */
+#line 38 "task1.y" /* yacc.c:1646  */
     {(yyval.node) = createTree(0,assign_node,NULL,(yyvsp[-1].node),(yyvsp[0].node));}
-#line 1293 "y.tab.c" /* yacc.c:1646  */
+#line 1294 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 10:
-#line 38 "task1.y" /* yacc.c:1646  */
+#line 39 "task1.y" /* yacc.c:1646  */
     {(yyval.node) = createTree(0,assign_node,NULL,(yyvsp[-3].node),(yyvsp[0].node));}
-#line 1299 "y.tab.c" /* yacc.c:1646  */
+#line 1300 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 11:
-#line 39 "task1.y" /* yacc.c:1646  */
+#line 40 "task1.y" /* yacc.c:1646  */
     {(yyval.node) = createTree(0,read_node,NULL,(yyvsp[-1].node),NULL);}
-#line 1305 "y.tab.c" /* yacc.c:1646  */
+#line 1306 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 12:
-#line 40 "task1.y" /* yacc.c:1646  */
+#line 41 "task1.y" /* yacc.c:1646  */
     {(yyval.node) = createTree(0,write_node,NULL,(yyvsp[-1].node),NULL);}
-#line 1311 "y.tab.c" /* yacc.c:1646  */
+#line 1312 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 13:
-#line 42 "task1.y" /* yacc.c:1646  */
+#line 43 "task1.y" /* yacc.c:1646  */
     {(yyval.node) = createTree(0,plus_node,NULL,(yyvsp[-2].node),(yyvsp[0].node));}
-#line 1317 "y.tab.c" /* yacc.c:1646  */
+#line 1318 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 14:
-#line 43 "task1.y" /* yacc.c:1646  */
+#line 44 "task1.y" /* yacc.c:1646  */
     {(yyval.node) = createTree(0,minus_node,NULL,(yyvsp[-2].node),(yyvsp[0].node));}
-#line 1323 "y.tab.c" /* yacc.c:1646  */
+#line 1324 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 15:
-#line 44 "task1.y" /* yacc.c:1646  */
+#line 45 "task1.y" /* yacc.c:1646  */
     {(yyval.node) = createTree(0,mul_node,NULL,(yyvsp[-2].node),(yyvsp[0].node));}
-#line 1329 "y.tab.c" /* yacc.c:1646  */
+#line 1330 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 16:
-#line 45 "task1.y" /* yacc.c:1646  */
+#line 46 "task1.y" /* yacc.c:1646  */
     {(yyval.node) = createTree(0,div_node,NULL,(yyvsp[-2].node),(yyvsp[0].node));}
-#line 1335 "y.tab.c" /* yacc.c:1646  */
+#line 1336 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 17:
-#line 46 "task1.y" /* yacc.c:1646  */
+#line 47 "task1.y" /* yacc.c:1646  */
     {(yyval.node) = (yyvsp[-1].node);}
-#line 1341 "y.tab.c" /* yacc.c:1646  */
+#line 1342 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 18:
-#line 47 "task1.y" /* yacc.c:1646  */
+#line 48 "task1.y" /* yacc.c:1646  */
     {(yyval.node) = (yyvsp[0].node);}
-#line 1347 "y.tab.c" /* yacc.c:1646  */
+#line 1348 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 19:
-#line 48 "task1.y" /* yacc.c:1646  */
+#line 49 "task1.y" /* yacc.c:1646  */
     {(yyval.node) = (yyvsp[0].node);}
-#line 1353 "y.tab.c" /* yacc.c:1646  */
+#line 1354 "y.tab.c" /* yacc.c:1646  */
     break;
 
 
-#line 1357 "y.tab.c" /* yacc.c:1646  */
+#line 1358 "y.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1581,7 +1582,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 50 "task1.y" /* yacc.c:1906  */
+#line 51 "task1.y" /* yacc.c:1906  */
 
 
 void yyerror(char *S)
@@ -1591,6 +1592,7 @@ void yyerror(char *S)
 
 int main()
 {
+    fp = fopen("/home/shrey/xsm_expl/xsm_progs/task2.xsm","w");
     yyparse();
 
     return 0;
