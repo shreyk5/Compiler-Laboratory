@@ -25,9 +25,11 @@ asgg [a-z][ \t]*[=]
 "then"  {return THEN;}
 "else"  {return ELSE;}
 "endif" {return ENDIF;}
-[a-z]   { str = strdup(yytext);  yylval.node = createTree(0,var_node,int_type,str,(tnode*)NULL,(tnode*)NULL); return ID;  }
-{num}   {n = atoi(yytext); yylval.node = createTree(n,num_node,int_type,(char*)NULL,(tnode*)NULL,(tnode*)NULL); return NUM;}
-{asgg}  {str = (char*)malloc(2 * sizeof(char)); str[0]= *yytext; str[1] = '\0'; yylval.node = createTree(0,var_node,int_type,str,(tnode*)NULL,(tnode*)NULL); return ASSIGN;}
+"while" {return WHILE;}
+"do"    {return DO;}
+"endwhile"  {return ENDWHILE;}
+[a-z]   { str = strdup(yytext);  yylval.node = createTree(0,var_node,int_type,str,(tnode*)NULL,(tnode*)NULL,(tnode*)NULL); return ID;  }
+{num}   {n = atoi(yytext); yylval.node = createTree(n,num_node,int_type,(char*)NULL,(tnode*)NULL,(tnode*)NULL,(tnode*)NULL); return NUM;}
 "+"     {return PLUS;}
 "-"     {return MINUS;}
 "*"     {return MUL;}

@@ -11,6 +11,7 @@
 #define end_node   11
 #define connector_node 12
 #define if_node	13
+#define ifElse_node 25
 #define else_node 14
 #define then_node	15
 #define endif_node	16
@@ -22,6 +23,7 @@
 #define neq_node 22
 #define lte_node 23
 #define gte_node 24
+#define while_node 26
 
 typedef struct tnode { 
 	int val;	// value of a number for NUM nodes.

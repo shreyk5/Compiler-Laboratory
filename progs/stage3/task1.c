@@ -142,33 +142,142 @@ void writeCodeGen(struct tnode* t)
 void ifCodeGen(struct tnode* t)
 {
     int p,q;
+    int lbl;
 
-    switch(t->type)
+    p = BasicCodeGen(t->left->left);
+    q = BasicCodeGen(t->left->right);
+            
+    switch(t->left->type)
     {
         case lt_node:
-            p = BasicCodeGen(t->left);
-            q = BasicCodeGen(t->right);
-
-            fprintf(fp, "LT %d,%d\n",p,q);
-            free_reg();
-            
+            fprintf(fp, "LT R%d,R%d\n",p,q);
             break;
 
         case gt_node:
+            fprintf(fp, "GT R%d,R%d\n",p,q);
             break;
         
         case eq_node:
+            fprintf(fp, "EQ R%d,R%d\n",p,q);
             break;
         
         case neq_node:
+            fprintf(fp, "NE R%d,R%d\n",p,q);
             break;
         
         case gte_node:
+            fprintf(fp, "GE R%d,R%d\n",p,q);
             break;
         
         case lte_node:
+            fprintf(fp, "LE R%d,R%d\n",p,q);
             break;
     }
+    free_reg();
+
+    lbl = get_label();
+    fprintf(fp,"JZ R%d,LABEL%d\n",p,lbl);
+
+    free_reg();
+
+    MainCodeGen(t->right);
+    fprintf(fp,"LABEL%d: ",lbl);
+            
+}
+
+void ifElseCodeGen(struct tnode* t)
+{
+    int p,q;
+    int lbl1,lbl2;
+
+    p = BasicCodeGen(t->left->left);
+    q = BasicCodeGen(t->left->right);
+            
+    switch(t->left->type)
+    {
+        case lt_node:
+            fprintf(fp, "LT R%d,R%d\n",p,q);
+            break;
+
+        case gt_node:
+            fprintf(fp, "GT R%d,R%d\n",p,q);
+            break;
+        
+        case eq_node:
+            fprintf(fp, "EQ R%d,R%d\n",p,q);
+            break;
+        
+        case neq_node:
+            fprintf(fp, "NE R%d,R%d\n",p,q);
+            break;
+        
+        case gte_node:
+            fprintf(fp, "GE R%d,R%d\n",p,q);
+            break;
+        
+        case lte_node:
+            fprintf(fp, "LE R%d,R%d\n",p,q);
+            break;
+    }
+    free_reg();
+            
+    lbl1 = get_label();
+    lbl2 = get_label();
+    fprintf(fp,"JZ R%d,LABEL%d\n",p,lbl1);
+    free_reg();
+    MainCodeGen(t->right);
+    fprintf(fp, "JMP LABEL%d\n",lbl2);
+    fprintf(fp,"LABEL%d: ",lbl1);
+    MainCodeGen(t->mid);
+    fprintf(fp,"LABEL%d: ",lbl2);
+            
+}
+
+void WhileCodeGen(struct tnode* t)
+{
+    int p,q,lbl1,lbl2;
+
+    lbl1 = get_label();
+    lbl2 = get_label();
+
+    fprintf(fp,"LABEL%d: ",lbl1);
+    p = BasicCodeGen(t->left->left);
+    q = BasicCodeGen(t->left->right);
+
+    switch(t->left->type)
+    {
+        case lt_node:
+            fprintf(fp, "LT R%d,R%d\n",p,q);
+            break;
+
+        case gt_node:
+            fprintf(fp, "GT R%d,R%d\n",p,q);
+            break;
+        
+        case eq_node:
+            fprintf(fp, "EQ R%d,R%d\n",p,q);
+            break;
+        
+        case neq_node:
+            fprintf(fp, "NE R%d,R%d\n",p,q);
+            break;
+        
+        case gte_node:
+            fprintf(fp, "GE R%d,R%d\n",p,q);
+            break;
+        
+        case lte_node:
+            fprintf(fp, "LE R%d,R%d\n",p,q);
+            break;
+    }
+    free_reg();
+    fprintf(fp,"JZ R%d,LABEL%d\n",p,lbl2);
+    free_reg();
+
+    MainCodeGen(t->right);
+    fprintf(fp, "JMP LABEL%d\n",lbl1);
+    fprintf(fp,"LABEL%d: ",lbl2);
+
 }
 
 void MainCodeGen(struct tnode* t)
@@ -199,6 +308,16 @@ void MainCodeGen(struct tnode* t)
     else if(t->type == if_node)
     {
         ifCodeGen(t);
+    }
+
+    else if(t->type == ifElse_node)
+    {
+        ifElseCodeGen(t);
+    }
+
+    else if(t->type == while_node)
+    {
+        WhileCodeGen(t);
     }
 
     else if(t->type == connector_node)

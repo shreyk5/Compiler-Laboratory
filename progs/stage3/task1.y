@@ -4,8 +4,9 @@
     #include<string.h>
     #include "task1.h"
     FILE *fp;
-    FILE *fp_read;
-    #include "task2.c"
+   	FILE *fp_read;
+    
+    #include "task1.c"
     extern FILE* yyin;
     int yylex(void); 
 %}
@@ -16,14 +17,16 @@
 };
 
 
-%token START END NUM ASSIGN READ WRITE ID PLUS MINUS MUL DIV IF THEN ELSE ENDIF LT GT EQ NEQ GTE LTE
-%type<node> program SLIST stmt asgStmt inputStmt outputStmt expr START END NUM ASSIGN READ WRITE ID PLUS MINUS MUL DIV
+%token START END NUM ASSIGN READ WRITE ID PLUS MINUS MUL DIV IF THEN ELSE ENDIF LT GT EQ NEQ GTE LTE DO WHILE ENDWHILE 
+
+%type<node> program SLIST stmt asgStmt inputStmt outputStmt BoolStmt IfStmt expr START END NUM ASSIGN READ WRITE ID PLUS MINUS MUL DIV WhileStmt
+
 %left PLUS MINUS
 %left MUL DIV 
 
 
 %%
-program : START SLIST END   {GenerateCode($2); Interpret($2);}
+program : START SLIST END   {GenerateCode($2);}
         | START END         {}
         ;
 
@@ -35,18 +38,21 @@ stmt : asgStmt      {$$ = $1;}
     | inputStmt     {$$ = $1;}
     | outputStmt    {$$ = $1;}
     | IfStmt		{$$ = $1;}
+    | WhileStmt 	{$$ = $1;}
     ;
 
-asgStmt : ASSIGN expr ';'           {CheckType($1,$2);
-									$$ = createTree(0,assign_node,int_type,NULL,$1,$2);};
+asgStmt : ID ASSIGN expr ';'      {CheckType($1,$2);
+									$$ = createTree(0,assign_node,int_type,NULL,$1,$3,NULL);};
 
-inputStmt : READ '(' ID ')' ';'     {$$ = createTree(0,read_node,NULL,$3,NULL,NULL);};
-outputStmt : WRITE '(' expr ')' ';' {$$ = createTree(0,write_node,NULL,$3,NULL,NULL);};
+inputStmt : READ '(' ID ')' ';'     {$$ = createTree(0,read_node,-1,NULL,$3,NULL,NULL);};
+outputStmt : WRITE '(' expr ')' ';' {$$ = createTree(0,write_node,-1,NULL,$3,NULL,NULL);};
 
-IfStmt : 	IF '(' BoolStmt ')' THEN SLIST ENDIF	{$$ = createTree(0,if_node,-1,NULL,$3,$6,NULL);}
+IfStmt : 	IF '(' BoolStmt ')' THEN SLIST ENDIF ';'	{printf("hi");$$ = createTree(0,if_node,-1,NULL,$3,$6,NULL);}
 
-		|	IF '(' BoolStmt ')' THEN SLIST ELSE SLIST ENDIF	{$$ = createTree(0,if_node,-1,NULL,$3,$6,$8);}
+		|	IF '(' BoolStmt ')' THEN SLIST ELSE SLIST ENDIF	';' {$$ = createTree(0,ifElse_node,-1,NULL,$3,$6,$8);}
 		;
+
+WhileStmt : WHILE '(' BoolStmt ')' DO SLIST ENDWHILE ';'	{$$ = createTree(0,while_node,-1,NULL,$3,$6,NULL);}
 
 expr : expr PLUS expr   {CheckType($1,$3);
 						$$ = createTree(0,plus_node,int_type,NULL,$1,$3,NULL);}
@@ -65,7 +71,7 @@ expr : expr PLUS expr   {CheckType($1,$3);
     |  NUM              {$$ = $1;}
     ;
 
-BoolStmt :  |  expr LT expr     {CheckType($1,$3);
+BoolStmt : 	   expr LT expr     {CheckType($1,$3);
     							$$ = createTree(0,lt_node,bool_type,NULL,$1,$3,NULL);}
 
     		|  expr GT expr     {CheckType($1,$3);
@@ -93,7 +99,7 @@ void yyerror(char *S)
 
 int main()
 {
-    fp = fopen("/home/shrey/xsm_expl/xsm_progs/task2.xsm","w");
+    fp = fopen("/home/shrey/xsm_expl/progs/stage3/input.xsm","w");
     fp_read = fopen("input.txt","r");
     yyin = fp_read; 
     yyparse();
