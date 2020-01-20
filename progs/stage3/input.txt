@@ -1,6 +1,23 @@
 begin
 a=1;
-while(a!=0) do
-read(a);
+while(a<=10) do
+a = a+1;
+if(a>=5) then
+continue;
+endif;
+write(a);
+endwhile;
+a = 1;
+while(a<=10) do
+	b = 1;
+	while(b<=5) do
+		if(a>=2) then
+		break;
+		endif;
+		write(b);
+		b = b + 1;
+	endwhile;
+	write(a);
+	a = a+1;
 endwhile;
 end

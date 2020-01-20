@@ -68,7 +68,9 @@ extern int yydebug;
     LTE = 278,
     DO = 279,
     WHILE = 280,
-    ENDWHILE = 281
+    ENDWHILE = 281,
+    BREAK = 282,
+    CONTINUE = 283
   };
 #endif
 /* Tokens.  */
@@ -96,17 +98,19 @@ extern int yydebug;
 #define DO 279
 #define WHILE 280
 #define ENDWHILE 281
+#define BREAK 282
+#define CONTINUE 283
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 
 union YYSTYPE
 {
-#line 15 "task1.y" /* yacc.c:1909  */
+#line 15 "task4.y" /* yacc.c:1909  */
 
     struct tnode* node;
 
-#line 110 "y.tab.h" /* yacc.c:1909  */
+#line 114 "y.tab.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

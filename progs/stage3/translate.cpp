@@ -68,22 +68,26 @@ int main()
 				for(int j=i;j<n;j++)
 				{
 					test += s[j];
-
-					if(test == "LABEL" && i == 0)
+					int poss = 1;
+					int save_j = j;
+					if(test == "LABEL")
 					{
 						while(j<n)
 						{
-							test += s[j];
+							//test += s[j];
 							if(s[j] == ':')
 							{
-								start = j+2;
+								poss = 0;
+								start = max(start,j+2);
+								//cout<<start<<endl;
 								break;
 							}
 							j++;
 						}
 					}
 
-					else if(test == "LABEL" && i!=0)
+					j = save_j;
+					if(test == "LABEL" && poss)
 					{
 						//cout<<"hi";
 						add_address = 1;
@@ -99,6 +103,7 @@ int main()
 			}
 		}
 
+		//cout<<start<<" "<<end<<endl;
 		for(int i = start;i<=end;i++)
 		{
 			fprintf(fp,"%c",s[i]);
