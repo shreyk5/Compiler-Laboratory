@@ -70,9 +70,7 @@ extern int yydebug;
     WHILE = 280,
     ENDWHILE = 281,
     BREAK = 282,
-    CONTINUE = 283,
-    REPEAT = 284,
-    UNTIL = 285
+    CONTINUE = 283
   };
 #endif
 /* Tokens.  */
@@ -102,19 +100,17 @@ extern int yydebug;
 #define ENDWHILE 281
 #define BREAK 282
 #define CONTINUE 283
-#define REPEAT 284
-#define UNTIL 285
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 
 union YYSTYPE
 {
-#line 15 "ex.y" /* yacc.c:1909  */
+#line 15 "task4.y" /* yacc.c:1909  */
 
     struct tnode* node;
 
-#line 118 "y.tab.h" /* yacc.c:1909  */
+#line 114 "y.tab.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

@@ -1,14 +1,7 @@
 begin
 a = 1;
-do
-{
-	b = 101;
-	repeat
-	{
-		write(b);
-		b = b+1;
-	}	until(b>=101);
-	write(a);
-	a = a+2;
-} while(a<=10);
+while(a<=10) do
+write(a);
+a= a+1;
+endwhile;
 end

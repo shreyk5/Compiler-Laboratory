@@ -1,0 +1,21 @@
+begin
+read(a);
+read(b);
+read(c);
+read(d);
+
+if(a<b) then
+	a = b;
+endif;
+
+if(a<c) then
+	a = c;
+endif;
+
+if(a<d) then
+	a = d;
+endif;
+
+write(a);
+
+end

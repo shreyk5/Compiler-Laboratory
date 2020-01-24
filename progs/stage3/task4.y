@@ -99,10 +99,15 @@ void yyerror(char *S)
     printf("\n%s",S);
 }
 
-int main()
+int main(int argc,char* argv[])
 {
+    if(argc<2)
+    {
+        printf("No test program\n");
+        exit(1);
+    }
     fp = fopen("/home/shrey/xsm_expl/progs/stage3/input.xsm","w");
-    fp_read = fopen("input.txt","r");
+    fp_read = fopen(argv[1],"r");
     yyin = fp_read; 
     yyparse();
 
