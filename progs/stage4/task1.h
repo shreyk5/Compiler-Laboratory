@@ -28,17 +28,8 @@
 #define break_node 28
 #define repeat_node 29
 #define Dowhile_node 30
-
-typedef struct tnode { 
-	int val;	// value of a number for NUM nodes.
-	int type;	//type of node
-	char* varname;	//name of a variable for ID nodes  
-	int ttype;  // int type or bool type
-	struct tnode *left,*right,*mid;	//left,right and mid branches   
-}tnode;
-
-/*Create a node tnode*/
-struct tnode* createTree(int val, int type, int ttype, char* c, struct tnode *l, struct tnode *r,struct tnode* mid);
+#define str_type 31
+#define str_node 32
 
 typedef struct Gsymbol {
 
@@ -46,9 +37,29 @@ typedef struct Gsymbol {
 	int type;	//type of the variable
 	int size;	
 	int binding;	//static memory address corresponding to the variable
-	struct Gysmbol* next;	//next table entry
+	struct Gsymbol* next;	//next table entry
 
 } Gsymbol;
+
+struct Gsymbol* start;
+struct Gsymbol* end;
+int bind;
+int variable_type;
+
+struct Gsymbol* Lookup2(char* variable_name);
+
+typedef struct tnode { 
+	int val;	// value of a number for NUM nodes.
+	char* str_val; //string for STRING nodes
+	int type;	//type of node
+	char* varname;	//name of a variable for ID nodes  
+	int ttype;  // int type or bool type
+	struct Gsymbol* Gentry;	//pointer to GST entry
+	struct tnode *left,*right,*mid;	//left,right and mid branches   
+}tnode;
+
+/*Create a node tnode*/
+struct tnode* createTree(int val, char* str_val, int type, int ttype, char* c, struct tnode *l, struct tnode *r,struct tnode* mid);
 
 typedef struct stack_node{
 	struct stack_node* next;

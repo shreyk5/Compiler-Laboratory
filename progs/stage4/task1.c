@@ -1,7 +1,8 @@
-struct tnode* createTree(int val, int type, int ttype, char* c, struct tnode *l, struct tnode *r, struct tnode* mid)
+struct tnode* createTree(int val, char* str_val, int type, int ttype, char* c, struct tnode *l, struct tnode *r, struct tnode* mid)
 {
     struct tnode *tmp = (struct tnode*)malloc(sizeof(tnode));
     tmp -> val = val;
+    tmp -> str_val = str_val;
     tmp -> type = type;
     tmp -> ttype = ttype;
     tmp -> left = l;
@@ -46,7 +47,17 @@ void CheckType(struct tnode* t1,struct tnode* t2)
 {
     if(!(t1->ttype == int_type && t2->ttype == int_type))
     {
-        printf("Type mismatch of operands\n");
+        printf("Error:Type mismatch of operands\n");
+        exit(1);
+    }
+}
+
+void AssignCheckType(struct tnode* t1,struct tnode* t2)
+{
+	//printf("%d %d",t1->ttype,t2->ttype);
+    if(!((t1->ttype == int_type && t2->ttype == int_type) || (t1->ttype == str_type && t2->ttype == str_type)))
+    {
+        printf("Error:Type mismatch of operands\n");
         exit(1);
     }
 }
@@ -76,12 +87,88 @@ int get_label()
     return label;
 }
 
+struct Gsymbol* Lookup(char* variable_name)
+{
+	struct Gsymbol* curr = start;
+
+	while(curr!=NULL)
+	{
+		if(strcmp(curr->name,variable_name) == 0)
+		{
+			printf("Error : %s Variable redeclaration\n",curr->name);
+			exit(1);
+			return curr;
+		}
+		curr = curr->next;
+	}
+
+	return NULL;
+}
+
+struct Gsymbol* Lookup2(char* variable_name)
+{
+	struct Gsymbol* curr = start;
+
+	while(curr!=NULL)
+	{
+		if(strcmp(curr->name,variable_name) == 0)
+		{
+			return curr;
+		}
+		curr = curr->next;
+	}
+
+	return NULL;
+}
+
+void Install(char* variable_name, int ttype, int size)
+{
+	struct Gsymbol* tmp = Lookup(variable_name);
+
+	struct Gsymbol* new_entry = (struct Gsymbol*)malloc(sizeof(struct Gsymbol));
+	new_entry -> name = variable_name;
+	new_entry -> type = ttype;
+	new_entry -> size = size;
+	new_entry -> binding = bind;
+
+	if(start == NULL)
+	{
+		start = new_entry;
+		end = new_entry;
+	}
+	else
+	{
+		end->next = new_entry;
+		end = new_entry;
+	}
+
+	bind += size;
+}
+
+void PrintSymbolTable()
+{
+	struct Gsymbol* curr = start;
+	printf("Name      Type       Size     Binding\n");
+	while(curr!=NULL)
+	{
+		printf("%s         %d         %d         %d\n",curr->name,curr->type,curr->size,curr->binding);
+		curr = curr->next;
+	}
+}
+
 int BasicCodeGen(struct tnode* t)
 {
     if(t->type == var_node)
     {
         int i = get_reg();
-        int addr = 4096 + t->varname[0] - 'a';
+        struct Gsymbol* idx = Lookup2(t->varname);
+        if(idx == NULL)
+        {
+        	printf("Error : %s Variable not declared",t->varname);
+        	exit(1);
+        }
+
+        int addr = idx->binding;
 
         fprintf(fp,"MOV R%d,[%d]\n",i,addr);
 
@@ -92,6 +179,14 @@ int BasicCodeGen(struct tnode* t)
     {
         int i = get_reg();
         fprintf(fp,"MOV R%d,%d\n",i,t->val);
+
+        return i;
+    }
+
+    else if(t->type == str_node)
+    {
+    	int i = get_reg();
+    	fprintf(fp,"MOV R%d,%s\n",i,t->str_val);
 
         return i;
     }
@@ -120,14 +215,23 @@ int BasicCodeGen(struct tnode* t)
     return p;
 }
 
-void readCodeGen(char c)
+void readCodeGen(char* c)
 {
+	struct Gsymbol* idx = Lookup2(c);
+	if(idx == NULL)
+	{
+		printf("Variable not declared\n");
+		exit(1);
+	}
+
+	int addr = idx->binding;
+
     int i = get_reg();  //to push values in the stack
     fprintf(fp,"MOV R%d,\"Read\"\n",i);
     fprintf(fp,"PUSH R%d\n",i);
     fprintf(fp,"MOV R%d,%d\n",i,-1);
     fprintf(fp,"PUSH R%d\n",i);
-    fprintf(fp,"MOV R%d,%d\n",i,4096+c-'a');
+    fprintf(fp,"MOV R%d,%d\n",i,addr);
     fprintf(fp,"PUSH R%d\n",i);
     fprintf(fp,"PUSH R%d\n",i);
     fprintf(fp,"PUSH R%d\n",i);
@@ -449,7 +553,13 @@ void MainCodeGen(struct tnode* t)
     if(t->type == assign_node)
     {
         int i = BasicCodeGen(t->right); //result is stored in Ri
-        int dest_addr = 4096 + t->left->varname[0] - 'a';
+        struct Gsymbol* idx = Lookup2(t->left->varname);
+
+        if(idx == NULL)
+        {
+        	printf("Error : %s Variable not declared",t->left->varname);
+        }
+        int dest_addr = idx->binding;
 
         fprintf(fp,"MOV [%d],R%d\n",dest_addr,i);
 
@@ -458,7 +568,7 @@ void MainCodeGen(struct tnode* t)
 
     else if(t->type == read_node)
     {
-        readCodeGen(t->left->varname[0]);
+        readCodeGen(t->left->varname);
     }
 
     else if(t->type == write_node)
@@ -550,6 +660,16 @@ void GenerateCode(struct tnode* t)
     MainCodeGen(t);
 
     GenerateExit();
+}
+
+void printTree(struct tnode* t)
+{
+	if(t==NULL)
+		return;
+
+	printTree(t->left);
+	printf("Type : %d\n",t->type);
+	printTree(t->right);
 }
 
 

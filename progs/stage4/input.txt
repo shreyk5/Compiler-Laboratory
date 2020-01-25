@@ -1,0 +1,11 @@
+decl
+int a,b,c;
+str Seta,Setb;
+enddecl
+
+begin
+a = 10+5;
+read(Seta);
+write(a);
+write(Seta);
+end

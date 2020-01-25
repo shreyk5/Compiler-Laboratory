@@ -10,12 +10,15 @@
 %}
 
 num [0-9]+
+char [a-z]*
 asgg [a-z][ \t]*[=]
 
 %%
 "begin" {return START;}
 "end"   {return END;}
 "decl"	{return DECL;}
+"int"	{return INT;}
+"str" 	{return STR;}
 "enddecl"	{return ENDDECL;}
 "read"  {return READ;}
 "write" {return WRITE;}
@@ -28,10 +31,18 @@ asgg [a-z][ \t]*[=]
 "repeat" {return REPEAT;}
 "until"	{return UNTIL;}
 "endwhile"  {return ENDWHILE;}
-"break" {yylval.node = createTree(0,break_node,-1,NULL,NULL,NULL,NULL); return BREAK;}
-"continue" {yylval.node = createTree(0,continue_node,-1,NULL,NULL,NULL,NULL); return CONTINUE;}
-[a-z]   { str = strdup(yytext);  yylval.node = createTree(0,var_node,int_type,str,(tnode*)NULL,(tnode*)NULL,(tnode*)NULL); return ID;  }
-{num}   {n = atoi(yytext); yylval.node = createTree(n,num_node,int_type,(char*)NULL,(tnode*)NULL,(tnode*)NULL,(tnode*)NULL); return NUM;}
+"break" {yylval.node = createTree(0,NULL,break_node,-1,NULL,NULL,NULL,NULL); return BREAK;}
+"continue" {yylval.node = createTree(0,NULL,continue_node,-1,NULL,NULL,NULL,NULL); return CONTINUE;}
+[a-zA-Z][a-zA-Z0-9]*   { str = strdup(yytext); yylval.node = createTree(0,NULL,var_node,-1,str,(tnode*)NULL,(tnode*)NULL,(tnode*)NULL); if(Lookup2(str)){yylval.node = createTree(0,NULL,var_node,Lookup2(str)->type,str,(tnode*)NULL,(tnode*)NULL,(tnode*)NULL);} return ID;  }
+{num}   {n = atoi(yytext); yylval.node = createTree(n,NULL,num_node,int_type,(char*)NULL,(tnode*)NULL,(tnode*)NULL,(tnode*)NULL); return NUM;}
+[\"](.)*[\"] {
+
+	//printf("%s\n",yytext);
+	str = (char*)malloc(sizeof(char)*(yyleng));
+	str = strdup(yytext);
+	yylval.node = createTree(-1,str,str_node,str_type,NULL,(tnode*)NULL,(tnode*)NULL,(tnode*)NULL); 
+	return STRING;
+}
 "+"     {return PLUS;}
 "-"     {return MINUS;}
 "*"     {return MUL;}
@@ -43,7 +54,7 @@ asgg [a-z][ \t]*[=]
 "!="    {return NEQ;}
 "<="    {return LTE;}
 ">="    {return GTE;}
-[{}();]   {return *yytext;}
+[{}();,]   {return *yytext;}
 [\n]    {}
 [\t]    {}
 .       {}
