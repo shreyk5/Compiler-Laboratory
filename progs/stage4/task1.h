@@ -30,11 +30,16 @@
 #define Dowhile_node 30
 #define str_type 31
 #define str_node 32
+#define array_node 33
+#define assignArray_node 34
+#define readArray_node 35
+#define mod_node 36
 
 typedef struct Gsymbol {
 
 	char *name;	//name of the variable
 	int type;	//type of the variable
+	int array_type;	//1 if array
 	int size;	
 	int binding;	//static memory address corresponding to the variable
 	struct Gsymbol* next;	//next table entry

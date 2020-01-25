@@ -52,6 +52,23 @@ void CheckType(struct tnode* t1,struct tnode* t2)
     }
 }
 
+void CheckIfArray(char* varname)
+{
+	struct Gsymbol* idx = Lookup2(varname);
+
+	if(idx == NULL)
+	{
+		printf("Error : %s Variable not found\n",varname);
+		exit(1);
+	} 
+
+	if(idx->array_type == 0)
+	{
+		printf("Error : %s is not array type\n",varname);
+		exit(1);
+	}
+}
+
 void AssignCheckType(struct tnode* t1,struct tnode* t2)
 {
 	//printf("%d %d",t1->ttype,t2->ttype);
@@ -121,13 +138,23 @@ struct Gsymbol* Lookup2(char* variable_name)
 	return NULL;
 }
 
-void Install(char* variable_name, int ttype, int size)
+void checkID(char* varname)
+{
+	if(!Lookup2(varname))
+    {
+    	printf("Error : %s Variable not declared\n",varname);
+    	exit(1);
+    }                                
+}
+
+void Install(char* variable_name, int ttype, int array_type, int size)
 {
 	struct Gsymbol* tmp = Lookup(variable_name);
 
 	struct Gsymbol* new_entry = (struct Gsymbol*)malloc(sizeof(struct Gsymbol));
 	new_entry -> name = variable_name;
 	new_entry -> type = ttype;
+	new_entry -> array_type = array_type;
 	new_entry -> size = size;
 	new_entry -> binding = bind;
 
@@ -148,10 +175,10 @@ void Install(char* variable_name, int ttype, int size)
 void PrintSymbolTable()
 {
 	struct Gsymbol* curr = start;
-	printf("Name      Type       Size     Binding\n");
+	printf("Name            Type      Array_type     Size     Binding\n");
 	while(curr!=NULL)
 	{
-		printf("%s         %d         %d         %d\n",curr->name,curr->type,curr->size,curr->binding);
+		printf("%s                %d         %d        %d         %d\n",curr->name,curr->type,curr->array_type,curr->size,curr->binding);
 		curr = curr->next;
 	}
 }
@@ -164,7 +191,7 @@ int BasicCodeGen(struct tnode* t)
         struct Gsymbol* idx = Lookup2(t->varname);
         if(idx == NULL)
         {
-        	printf("Error : %s Variable not declared",t->varname);
+        	printf("Error : %s Variable not declared\n",t->varname);
         	exit(1);
         }
 
@@ -191,6 +218,27 @@ int BasicCodeGen(struct tnode* t)
         return i;
     }
 
+    else if(t->type == array_node)
+    {
+    	int i = get_reg();
+    	int j = BasicCodeGen(t->right);
+    	
+    	struct Gsymbol* idx = Lookup2(t->left->varname);
+    	if(idx == NULL)
+    	{
+    		printf("Error : %s Variable not found",t->left->varname);
+    		exit(1);
+    	}
+
+    	int addr = idx->binding;
+    	fprintf(fp,"ADD R%d,%d\n",j,addr);
+    	fprintf(fp,"MOV R%d,[R%d]\n",i,j);
+
+    	free_reg();
+
+    	return i;
+    }
+
     int p = BasicCodeGen(t->left);
     int q = BasicCodeGen(t->right);
 
@@ -208,11 +256,38 @@ int BasicCodeGen(struct tnode* t)
         case 6:
             fprintf(fp,"DIV R%d,R%d\n",p,q);
             break;
+        case 36:
+        	fprintf(fp,"MOD R%d,R%d\n",p,q);
+            break;
     }
     
     free_reg();
 
     return p;
+}
+
+void AssignArrayCodeGen(struct tnode* t)
+{
+	int i = BasicCodeGen(t->mid); //value to be assigned,result is stored in Ri
+    struct Gsymbol* idx = Lookup2(t->left->varname);
+
+    if(idx == NULL)
+    {
+       	printf("Error : %s Variable not declared",t->left->varname);
+    }
+
+    int j = BasicCodeGen(t->right);	//value of index to be accessed
+
+    int addr = idx->binding;
+    int k = get_reg();
+
+    fprintf(fp,"MOV R%d,%d\n",k,addr);	//value of base address
+    fprintf(fp,"ADD R%d,R%d\n",k,j);	//now k contains final address
+    fprintf(fp,"MOV [R%d],R%d\n",k,i);
+
+    free_reg();
+    free_reg();
+    free_reg();
 }
 
 void readCodeGen(char* c)
@@ -242,6 +317,40 @@ void readCodeGen(char* c)
     fprintf(fp,"POP R%d\n",i);
     fprintf(fp,"POP R%d\n",i);
 
+    free_reg();
+}
+
+void readArrayCodeGen(struct tnode* t)
+{
+	struct Gsymbol* idx = Lookup2(t->left->varname);
+	if(idx == NULL)
+	{
+		printf("Variable not declared\n");
+		exit(1);
+	}
+
+	int addr = idx->binding;
+
+    int i = get_reg();  //to push values in the stack
+    int j = BasicCodeGen(t->right);
+
+    fprintf(fp,"MOV R%d,\"Read\"\n",i);
+    fprintf(fp,"PUSH R%d\n",i);
+    fprintf(fp,"MOV R%d,%d\n",i,-1);
+    fprintf(fp,"PUSH R%d\n",i);
+    fprintf(fp,"MOV R%d,%d\n",i,addr);
+    fprintf(fp,"ADD R%d,R%d\n",i,j);
+    fprintf(fp,"PUSH R%d\n",i);
+    fprintf(fp,"PUSH R%d\n",i);
+    fprintf(fp,"PUSH R%d\n",i);
+    fprintf(fp,"CALL 0\n");
+    fprintf(fp,"POP R%d\n",i);
+    fprintf(fp,"POP R%d\n",i);
+    fprintf(fp,"POP R%d\n",i);
+    fprintf(fp,"POP R%d\n",i);
+    fprintf(fp,"POP R%d\n",i);
+
+    free_reg();
     free_reg();
 }
 
@@ -566,9 +675,19 @@ void MainCodeGen(struct tnode* t)
         free_reg(); //Ri is no longer needed
     }
 
+    else if(t->type == assignArray_node)
+    {
+    	AssignArrayCodeGen(t);
+    }
+
     else if(t->type == read_node)
     {
         readCodeGen(t->left->varname);
+    }
+
+    else if(t->type == readArray_node)
+    {
+        readArrayCodeGen(t);
     }
 
     else if(t->type == write_node)

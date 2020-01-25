@@ -60,24 +60,25 @@ extern int yydebug;
     MINUS = 270,
     MUL = 271,
     DIV = 272,
-    IF = 273,
-    THEN = 274,
-    ELSE = 275,
-    ENDIF = 276,
-    LT = 277,
-    GT = 278,
-    EQ = 279,
-    NEQ = 280,
-    GTE = 281,
-    LTE = 282,
-    DO = 283,
-    WHILE = 284,
-    ENDWHILE = 285,
-    BREAK = 286,
-    CONTINUE = 287,
-    REPEAT = 288,
-    UNTIL = 289,
-    STRING = 290
+    MOD = 273,
+    IF = 274,
+    THEN = 275,
+    ELSE = 276,
+    ENDIF = 277,
+    LT = 278,
+    GT = 279,
+    EQ = 280,
+    NEQ = 281,
+    GTE = 282,
+    LTE = 283,
+    DO = 284,
+    WHILE = 285,
+    ENDWHILE = 286,
+    BREAK = 287,
+    CONTINUE = 288,
+    REPEAT = 289,
+    UNTIL = 290,
+    STRING = 291
   };
 #endif
 /* Tokens.  */
@@ -96,24 +97,25 @@ extern int yydebug;
 #define MINUS 270
 #define MUL 271
 #define DIV 272
-#define IF 273
-#define THEN 274
-#define ELSE 275
-#define ENDIF 276
-#define LT 277
-#define GT 278
-#define EQ 279
-#define NEQ 280
-#define GTE 281
-#define LTE 282
-#define DO 283
-#define WHILE 284
-#define ENDWHILE 285
-#define BREAK 286
-#define CONTINUE 287
-#define REPEAT 288
-#define UNTIL 289
-#define STRING 290
+#define MOD 273
+#define IF 274
+#define THEN 275
+#define ELSE 276
+#define ENDIF 277
+#define LT 278
+#define GT 279
+#define EQ 280
+#define NEQ 281
+#define GTE 282
+#define LTE 283
+#define DO 284
+#define WHILE 285
+#define ENDWHILE 286
+#define BREAK 287
+#define CONTINUE 288
+#define REPEAT 289
+#define UNTIL 290
+#define STRING 291
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
@@ -124,7 +126,7 @@ union YYSTYPE
 
     struct tnode* node;
 
-#line 128 "y.tab.h" /* yacc.c:1909  */
+#line 130 "y.tab.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

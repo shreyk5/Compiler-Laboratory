@@ -14,17 +14,19 @@ int main()
 		line++;
 		//cout<<s<<endl;
 		int n = s.length();
+		bool store = 0;
 
 		if(n>=5)
 		{
 			for(int i=0;i<n;i++)
 			{
 				string test = "";
+				
 				for(int j=i;j<n;j++)
 				{
 					test += s[j];
 					//cout<<test<<endl;
-					if(test == "LABEL" && i == 0)
+					if(test == "LABEL")
 					{
 						//cout<<"ho";
 						int lbl1 = 0;
@@ -33,13 +35,18 @@ int main()
 						{
 							//cout<<s[j];
 							if(s[j] == ':')
+							{
+								store = 1;
 								break;
+							}
 
 							lbl1 = lbl1*10 + s[j]-'0';
 							
 							j++;
 						}
+						if(store)
 						Address[lbl1] = 2056 + (line-9)*2;
+						store = 0;
 						//cout<<lbl1<<endl; 
 						//cout<<Address[lbl1]<<endl;
 					}

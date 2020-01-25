@@ -1,11 +1,26 @@
 decl
-int a,b,c;
-str Seta,Setb;
+int i,a,b,c[10];
+str Seta,Setb[5];
 enddecl
 
 begin
-a = 10+5;
-read(Seta);
-write(a);
-write(Seta);
+read(a);
+i = 0;
+while(i<a) do
+read(c[i]);
+i = i +1;
+endwhile;
+
+if(c[c[1]]<5) then
+write(c[c[1]]);
+endif;
+
+i = 0;
+while(i<a) do
+if(c[i]>=10) then
+write(c[i]);
+endif;
+i = i +1;
+endwhile;
+
 end

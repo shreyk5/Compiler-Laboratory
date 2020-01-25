@@ -47,6 +47,7 @@ asgg [a-z][ \t]*[=]
 "-"     {return MINUS;}
 "*"     {return MUL;}
 "/"     {return DIV;}
+"%"     {return MOD;}
 "="     {return ASSIGN;}
 "<"     {return LT;}
 ">"     {return GT;}
@@ -54,7 +55,7 @@ asgg [a-z][ \t]*[=]
 "!="    {return NEQ;}
 "<="    {return LTE;}
 ">="    {return GTE;}
-[{}();,]   {return *yytext;}
+[{}();,\[\]]   {return *yytext;}
 [\n]    {}
 [\t]    {}
 .       {}

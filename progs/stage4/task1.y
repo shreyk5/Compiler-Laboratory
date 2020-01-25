@@ -17,9 +17,9 @@
 };
 
 
-%token START END DECL ENDDECL INT STR NUM ASSIGN READ WRITE ID PLUS MINUS MUL DIV IF THEN ELSE ENDIF LT GT EQ NEQ GTE LTE DO WHILE ENDWHILE BREAK CONTINUE REPEAT UNTIL STRING
+%token START END DECL ENDDECL INT STR NUM ASSIGN READ WRITE ID PLUS MINUS MUL DIV MOD IF THEN ELSE ENDIF LT GT EQ NEQ GTE LTE DO WHILE ENDWHILE BREAK CONTINUE REPEAT UNTIL STRING
 
-%type<node> program SLIST stmt asgStmt inputStmt outputStmt BoolStmt IfStmt RepeatStmt expr START END NUM ASSIGN READ WRITE ID PLUS MINUS MUL DIV WhileStmt DoWhileStmt BREAK CONTINUE STRING
+%type<node> program SLIST stmt asgStmt inputStmt outputStmt BoolStmt IfStmt RepeatStmt expr MainExpr stringExpr START END NUM ASSIGN READ WRITE ID PLUS MINUS MUL DIV WhileStmt DoWhileStmt BREAK CONTINUE STRING
 
 %left PLUS MINUS
 %left MUL DIV 
@@ -48,9 +48,11 @@ Type : INT {variable_type = int_type;}
 	|  STR {variable_type = str_type;}
 	;
 
-Varlist : Varlist ',' ID  	{Install($3->varname,variable_type,1);}
-		| ID 				{Install($1->varname,variable_type,1);}
-		;			
+Varlist : Varlist ',' ID  	{Install($3->varname,variable_type,0,1);}
+        | Varlist ',' ID '[' NUM ']' {Install($3->varname,variable_type,1,$5->val);}
+		| ID 				{Install($1->varname,variable_type,0,1);}
+		| ID '[' NUM ']'    {Install($1->varname,variable_type,1,$3->val);}  
+        ;    			
 
 stmt : asgStmt      {$$ = $1;}
     | inputStmt     {$$ = $1;}
@@ -63,12 +65,26 @@ stmt : asgStmt      {$$ = $1;}
     | CONTINUE ';'  {$$ = $1;}
     ;
 
-asgStmt : ID ASSIGN expr ';'      {
+asgStmt : ID ASSIGN MainExpr ';'      {
+                                    checkID($1->varname);    
 									AssignCheckType($1,$3);
-									$$ = createTree(0,NULL,assign_node,int_type,NULL,$1,$3,NULL);};
+									$$ = createTree(0,NULL,assign_node,$1->ttype,NULL,$1,$3,NULL);}
 
-inputStmt : READ '(' ID ')' ';'     {$$ = createTree(0,NULL,read_node,-1,NULL,$3,NULL,NULL);};
-outputStmt : WRITE '(' expr ')' ';' {$$ = createTree(0,NULL,write_node,-1,NULL,$3,NULL,NULL);};
+        |  ID '[' expr ']' ASSIGN MainExpr ';'      {
+                                    CheckIfArray($1->varname);
+                                    AssignCheckType($1,$6);
+                                    $$ = createTree(0,NULL,assignArray_node,$1->ttype,NULL,$1,$3,$6);}
+        ;
+
+inputStmt : READ '(' ID ')' ';'     {
+        checkID($3->varname);
+        $$ = createTree(0,NULL,read_node,-1,NULL,$3,NULL,NULL);}
+        | READ '(' ID '[' MainExpr ']'  ')' ';'     {
+        CheckIfArray($3->varname);
+        $$ = createTree(0,NULL,readArray_node,-1,NULL,$3,$5,NULL);}
+        ;
+
+outputStmt : WRITE '(' MainExpr ')' ';' {$$ = createTree(0,NULL,write_node,-1,NULL,$3,NULL,NULL);};
 
 IfStmt : 	IF '(' BoolStmt ')' THEN SLIST ENDIF ';'	{$$ = createTree(0,NULL,if_node,-1,NULL,$3,$6,NULL);}
 
@@ -81,6 +97,10 @@ DoWhileStmt : DO '{' SLIST '}' WHILE '(' BoolStmt ')' ';'    {$$ = createTree(0,
 
 RepeatStmt : REPEAT '{' SLIST '}' UNTIL '(' BoolStmt ')' ';'  {$$ = createTree(0,NULL,repeat_node,-1,NULL,$7,$3,NULL);};
 
+MainExpr : expr         {$$ = $1;}
+        |  stringExpr   {$$ = $1;}
+        ;
+
 expr : expr PLUS expr   {CheckType($1,$3);
 						$$ = createTree(0,NULL,plus_node,int_type,NULL,$1,$3,NULL);}
 
@@ -92,12 +112,19 @@ expr : expr PLUS expr   {CheckType($1,$3);
 
     |  expr DIV expr    {CheckType($1,$3);
     					$$ = createTree(0,NULL,div_node,int_type,NULL,$1,$3,NULL);}
+    |  expr MOD expr    {CheckType($1,$3);
+                        $$ = createTree(0,NULL,mod_node,int_type,NULL,$1,$3,NULL);}
 
     | '(' expr ')'      {$$ = $2;}
-    |  ID               {$$ = $1;}
+    |  ID               {checkID($1->varname); $$ = $1;}
+    |  ID '[' expr ']'  {checkID($1->varname); CheckIfArray($1->varname);
+    $$ = createTree(                                       0,NULL,array_node,$1->ttype,NULL,$1,$3,NULL);}
+
     |  NUM              {$$ = $1;}
-    |  STRING    		{$$ = $1;}
     ;
+
+stringExpr : STRING     {$$ = $1;}
+        ;
 
 BoolStmt : 	   expr LT expr     {CheckType($1,$3);
     							$$ = createTree(0,NULL,lt_node,bool_type,NULL,$1,$3,NULL);}
@@ -125,10 +152,11 @@ void yyerror(char *S)
     printf("\n%s",S);
 }
 
-int main()
+int main(int argc,char* argv[])
 {
     fp = fopen("/home/shrey/xsm_expl/progs/stage4/input.xsm","w");
-    fp_read = fopen("input.txt","r");
+
+    fp_read = fopen(argv[1],"r");
     yyin = fp_read;
     bind = 4096;
 
