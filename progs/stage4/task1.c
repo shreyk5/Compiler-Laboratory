@@ -79,6 +79,24 @@ void AssignCheckType(struct tnode* t1,struct tnode* t2)
     }
 }
 
+void CheckBoolType(struct tnode* t)
+{
+    if(t->ttype != bool_type)
+    {
+        printf("Expression is not bool type\n");
+        exit(1);   
+    }
+}
+
+void CheckIntType(struct tnode* t)
+{
+    if(t->ttype != int_type)
+    {
+        printf("Expression is not int type\n");
+        exit(1);
+    }
+}
+
 int used = -1;
 int get_reg()
 {

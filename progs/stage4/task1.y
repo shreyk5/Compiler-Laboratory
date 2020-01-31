@@ -19,7 +19,7 @@
 
 %token START END DECL ENDDECL INT STR NUM ASSIGN READ WRITE ID PLUS MINUS MUL DIV MOD IF THEN ELSE ENDIF LT GT EQ NEQ GTE LTE DO WHILE ENDWHILE BREAK CONTINUE REPEAT UNTIL STRING
 
-%type<node> program SLIST stmt asgStmt inputStmt outputStmt BoolStmt IfStmt RepeatStmt expr MainExpr stringExpr START END NUM ASSIGN READ WRITE ID PLUS MINUS MUL DIV WhileStmt DoWhileStmt BREAK CONTINUE STRING
+%type<node> program SLIST stmt asgStmt inputStmt outputStmt IfStmt RepeatStmt expr START END NUM ASSIGN READ WRITE ID PLUS MINUS MUL DIV WhileStmt DoWhileStmt BREAK CONTINUE STRING
 
 %left PLUS MINUS
 %left MUL DIV 
@@ -65,13 +65,15 @@ stmt : asgStmt      {$$ = $1;}
     | CONTINUE ';'  {$$ = $1;}
     ;
 
-asgStmt : ID ASSIGN MainExpr ';'      {
+asgStmt : ID ASSIGN expr ';'        {
                                     checkID($1->varname);    
 									AssignCheckType($1,$3);
 									$$ = createTree(0,NULL,assign_node,$1->ttype,NULL,$1,$3,NULL);}
 
-        |  ID '[' expr ']' ASSIGN MainExpr ';'      {
+        |  ID '[' expr ']' ASSIGN expr ';'      
+                                    {
                                     CheckIfArray($1->varname);
+                                    CheckIntType($3);
                                     AssignCheckType($1,$6);
                                     $$ = createTree(0,NULL,assignArray_node,$1->ttype,NULL,$1,$3,$6);}
         ;
@@ -79,27 +81,36 @@ asgStmt : ID ASSIGN MainExpr ';'      {
 inputStmt : READ '(' ID ')' ';'     {
         checkID($3->varname);
         $$ = createTree(0,NULL,read_node,-1,NULL,$3,NULL,NULL);}
-        | READ '(' ID '[' MainExpr ']'  ')' ';'     {
+
+        | READ '(' ID '[' expr ']'  ')' ';'     {
         CheckIfArray($3->varname);
+        CheckIntType($5);
         $$ = createTree(0,NULL,readArray_node,-1,NULL,$3,$5,NULL);}
         ;
 
-outputStmt : WRITE '(' MainExpr ')' ';' {$$ = createTree(0,NULL,write_node,-1,NULL,$3,NULL,NULL);};
+outputStmt : WRITE '(' expr ')' ';' {$$ = createTree(0,NULL,write_node,-1,NULL,$3,NULL,NULL);};
 
-IfStmt : 	IF '(' BoolStmt ')' THEN SLIST ENDIF ';'	{$$ = createTree(0,NULL,if_node,-1,NULL,$3,$6,NULL);}
+IfStmt : 	IF '(' expr ')' THEN SLIST ENDIF ';'	{
+CheckBoolType($3);
+$$ = createTree(0,NULL,if_node,-1,NULL,$3,$6,NULL);}
 
-		|	IF '(' BoolStmt ')' THEN SLIST ELSE SLIST ENDIF	';' {$$ = createTree(0,NULL,ifElse_node,-1,NULL,$3,$6,$8);}
+		|	IF '(' expr ')' THEN SLIST ELSE SLIST ENDIF	';' {
+        CheckBoolType($3);
+        $$ = createTree(0,NULL,ifElse_node,-1,NULL,$3,$6,$8);}
 		;
 
-WhileStmt : WHILE '(' BoolStmt ')' DO SLIST ENDWHILE ';'	{$$ = createTree(0,NULL,while_node,-1,NULL,$3,$6,NULL);};
+WhileStmt : WHILE '(' expr ')' DO SLIST ENDWHILE ';'	{
+CheckBoolType($3);
+$$ = createTree(0,NULL,while_node,-1,NULL,$3,$6,NULL);};
 
-DoWhileStmt : DO '{' SLIST '}' WHILE '(' BoolStmt ')' ';'    {$$ = createTree(0,NULL,Dowhile_node,-1,NULL,$7,$3,NULL);};
+DoWhileStmt : DO '{' SLIST '}' WHILE '(' expr ')' ';'    {
+CheckBoolType($7);
+$$ = createTree(0,NULL,Dowhile_node,-1,NULL,$7,$3,NULL);};
 
-RepeatStmt : REPEAT '{' SLIST '}' UNTIL '(' BoolStmt ')' ';'  {$$ = createTree(0,NULL,repeat_node,-1,NULL,$7,$3,NULL);};
+RepeatStmt : REPEAT '{' SLIST '}' UNTIL '(' expr ')' ';'  {
+CheckBoolType($7);
+$$ = createTree(0,NULL,repeat_node,-1,NULL,$7,$3,NULL);};
 
-MainExpr : expr         {$$ = $1;}
-        |  stringExpr   {$$ = $1;}
-        ;
 
 expr : expr PLUS expr   {CheckType($1,$3);
 						$$ = createTree(0,NULL,plus_node,int_type,NULL,$1,$3,NULL);}
@@ -112,38 +123,41 @@ expr : expr PLUS expr   {CheckType($1,$3);
 
     |  expr DIV expr    {CheckType($1,$3);
     					$$ = createTree(0,NULL,div_node,int_type,NULL,$1,$3,NULL);}
+
     |  expr MOD expr    {CheckType($1,$3);
                         $$ = createTree(0,NULL,mod_node,int_type,NULL,$1,$3,NULL);}
 
+    |  expr LT expr     {CheckType($1,$3);
+                                $$ = createTree(0,NULL,lt_node,bool_type,NULL,$1,$3,NULL);}
+
+    |  expr GT expr     {CheckType($1,$3);
+                                $$ = createTree(0,NULL,gt_node,bool_type,NULL,$1,$3,NULL);}
+
+    |  expr EQ expr     {CheckType($1,$3);
+                                $$ = createTree(0,NULL,eq_node,bool_type,NULL,$1,$3,NULL);}
+
+    |  expr NEQ expr    {CheckType($1,$3);
+                                $$ = createTree(0,NULL,neq_node,bool_type,NULL,$1,$3,NULL);}
+
+    |  expr LTE expr    {CheckType($1,$3);
+                                $$ = createTree(0,NULL,lte_node,bool_type,NULL,$1,$3,NULL);}
+
+    |  expr GTE expr    {CheckType($1,$3);
+                                $$ = createTree(0,NULL,gte_node,bool_type,NULL,$1,$3,NULL);}
+    ;                                
+
     | '(' expr ')'      {$$ = $2;}
     |  ID               {checkID($1->varname); $$ = $1;}
-    |  ID '[' expr ']'  {checkID($1->varname); CheckIfArray($1->varname);
+    |  ID '[' expr ']'  {checkID($1->varname); 
+
+    CheckIfArray($1->varname);
+    CheckIntType($3);
     $$ = createTree(                                       0,NULL,array_node,$1->ttype,NULL,$1,$3,NULL);}
 
     |  NUM              {$$ = $1;}
+    |  STRING           {$$ = $1;}
     ;
 
-stringExpr : STRING     {$$ = $1;}
-        ;
-
-BoolStmt : 	   expr LT expr     {CheckType($1,$3);
-    							$$ = createTree(0,NULL,lt_node,bool_type,NULL,$1,$3,NULL);}
-
-    		|  expr GT expr     {CheckType($1,$3);
-    							$$ = createTree(0,NULL,gt_node,bool_type,NULL,$1,$3,NULL);}
-
-    		|  expr EQ expr     {CheckType($1,$3);
-    							$$ = createTree(0,NULL,eq_node,bool_type,NULL,$1,$3,NULL);}
-
-    		|  expr NEQ expr    {CheckType($1,$3);
-    							$$ = createTree(0,NULL,neq_node,bool_type,NULL,$1,$3,NULL);}
-
-    		|  expr LTE expr    {CheckType($1,$3);
-    							$$ = createTree(0,NULL,lte_node,bool_type,NULL,$1,$3,NULL);}
-
-    		|  expr GTE expr    {CheckType($1,$3);
-    							$$ = createTree(0,NULL,gte_node,bool_type,NULL,$1,$3,NULL);}
-    		;
 
 %%
 

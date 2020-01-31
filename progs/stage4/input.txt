@@ -1,26 +1,23 @@
 decl
-int i,a,b,c[10];
-str Seta,Setb[5];
+int a,b,c,d[10];
+str abc;
 enddecl
 
 begin
-read(a);
-i = 0;
-while(i<a) do
-read(c[i]);
-i = i +1;
-endwhile;
 
-if(c[c[1]]<5) then
-write(c[c[1]]);
-endif;
-
-i = 0;
-while(i<a) do
-if(c[i]>=10) then
-write(c[i]);
-endif;
-i = i +1;
+a = 1;
+while(a<5) do
+	b = 2;
+	while(b<=3) do
+		write(b);
+		if(b==3) then
+			break;
+		endif;
+		b = b+1;
+	endwhile;
+	write("hi\n");
+	break;
+a = a+1;
 endwhile;
 
 end
