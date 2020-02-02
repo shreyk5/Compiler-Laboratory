@@ -1,0 +1,38 @@
+decl
+	int a,b,f(int c);
+	int fact(int k);
+enddecl
+
+int f(int c)
+{
+	decl
+		int shrey;
+	enddecl
+	begin
+		write("hi");
+		return 1;
+	end
+}
+
+int fact(int a)
+{
+	decl
+		int x,y,z;
+	enddecl
+
+	begin
+		write("hi");
+		return 1;
+	end
+}
+
+int main()
+{
+	decl
+		int abc;
+	enddecl
+	begin
+	    write("hi");
+		return 1;
+	end
+}

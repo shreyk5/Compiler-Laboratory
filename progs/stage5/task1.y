@@ -17,25 +17,34 @@
 };
 
 
-%token START END DECL ENDDECL MAIN INT STR NUM ASSIGN READ WRITE ID PLUS MINUS MUL DIV MOD IF THEN ELSE ENDIF LT GT EQ NEQ GTE LTE DO WHILE ENDWHILE BREAK CONTINUE REPEAT UNTIL STRING
+%token START END DECL ENDDECL MAIN INT STR NUM ASSIGN READ WRITE ID PLUS MINUS MUL DIV MOD IF THEN ELSE ENDIF LT GT EQ NEQ GTE LTE DO WHILE ENDWHILE BREAK CONTINUE REPEAT UNTIL STRING RETURN
 
-%type<node> program SLIST stmt asgStmt inputStmt outputStmt IfStmt RepeatStmt expr START END NUM ASSIGN READ WRITE ID PLUS MINUS MUL DIV WhileStmt DoWhileStmt BREAK CONTINUE STRING
+%type<node> Program SLIST stmt asgStmt inputStmt outputStmt IfStmt RepeatStmt expr START END NUM ASSIGN READ WRITE ID PLUS MINUS MUL DIV WhileStmt DoWhileStmt BREAK CONTINUE STRING ArgList
 
 %left PLUS MINUS
-%left MUL DIV 
+%left MUL DIV MOD
 %nonassoc LT GT EQ NEQ GTE LTE
-
+%start Program
 %%
 
 //---------------------------------PROGRAM-------------------------------------
-Program : GDeclBlock FdefBlock MainBlock
+Program : GDeclBlock FDefBlock MainBlock
 		| GDeclBlock MainBlock
 		| MainBlock
 		;
 //-----------------------------------------------------------------------------
 
+
+//-------------------------------TYPE------------------------------------------
+
+Type : INT     {variable_type = int_type;}
+		|  STR {variable_type = str_type;}
+		;
+//-----------------------------------------------------------------------------
+
+
 //---------------------------GLOBAL DECLARATION--------------------------------
-GDeclBlock : DECL GDeclList ENDDECL
+GDeclBlock : DECL GDeclList ENDDECL	{PrintSymbolTable();}
 			| DECL ENDDECL
 			;
 
@@ -43,36 +52,55 @@ GDeclList : GDeclList GDecl
 			| GDecl
 			;
 
-GDecl : Type GidList
+GDecl : Type GidList ';'
 		;
 
-GidList : Gidlist ',' Gid
+GidList : GidList ',' Gid
 		| Gid
 		;
 
 Gid : ID 					{Install($1->varname,variable_type,0,1);}
 	| ID '[' NUM ']'		{Install($1->varname,variable_type,1,$3->val);}
-	| ID '(' ParamList ')'
+	| ID '(' ParamList ')'	{
+								Install($1->varname,variable_type,2,1);
+								InsertParamList($1->varname);	
+							}
 	;
 //-----------------------------------------------------------------------------
 
 //----------------------------FUNCTION DEFINITION------------------------------
-FdefBlock : FDefBlock FDef
+FDefBlock : FDefBlock FDef
 			| FDef
 			;
 
-FDef : Type ID '(' Paramlist ')' '{' LDeclBlock Body'}'
+FDef : Type ID '(' ParamList ')' '{' LDeclBlock Body'}'	
+		{
+			CheckIfFunction($2->varname);
+			CheckReturnType($2->varname,variable_type);
+			CheckParamList($2->varname);
+			InsertLST($2->varname);
+			PrintLST($2->varname);
+			PrintParamList($2->varname);
+			ActRecordSetup($2 -> varname);
+
+			//somecodegen($8);
+
+			PopLocalVariables($2->varname);
+
+			fprintf(fp,"MOV BP,[SP]\n");
+			fprintf(fp,"SUB SP,1\n");
+			fprintf(fp,"RET\n");
+			clearList();	
+		}
 		;
 
-Paramlist : Paramlist ',' Param
+ParamList : ParamList ',' Param
 			| Param
 			;
 
-Param : Type ID
-		;
-
-Type : INT {variable_type = int_type;}
-		|  STR {variable_type = str_type;}
+Param : Type ID     {
+						InsertParam($2->varname,variable_type);
+					}
 		;
 
 LDeclBlock : DECL LDeclList ENDDECL
@@ -86,15 +114,15 @@ LDeclList : LDeclList ',' LDecl
 LDecl : Type IDList ';'
 		;
 
-IDList : IDList ',' ID
-		| ID
+IDList : IDList ',' ID      {InsertLocalSymbol($3->varname,variable_type);}
+		| ID           		{InsertLocalSymbol($1->varname,variable_type);}
 		;
 
 //-----------------------------------------------------------------------------
 
 //-----------------------------MAIN BLOCK--------------------------------------
 
-MainBlock : INT MAIN '(' ')' '{' LDeclBlock Body'}'
+MainBlock : INT MAIN '(' ')' '{' LDeclBlock Body '}'	{printf("hi");}
 			;
 //-----------------------------------------------------------------------------
 
@@ -102,6 +130,7 @@ MainBlock : INT MAIN '(' ')' '{' LDeclBlock Body'}'
 //------------------------------BODY-------------------------------------------
 
 Body : START SLIST RetStmt END
+	;
 
 //-----------------------------------------------------------------------------
 
@@ -220,21 +249,54 @@ expr : expr PLUS expr   {CheckType($1,$3);
     CheckIntType($3);
     $$ = createTree(                                       0,NULL,array_node,$1->ttype,NULL,$1,$3,NULL);}
 
-    |  NUM              {$$ = $1;}
-    |  STRING           {$$ = $1;}
+    |  NUM              	{$$ = $1;}
+    |  STRING           	{$$ = $1;}
+    |  ID '(' ')'			{
+    							checkID($1->varname);
+    							CheckIfFunction($1->varname);
+    							struct Gsymbol* idx = Lookup2($1->varname);
+
+    							CheckInformalParamList($1->varname,NULL);
+
+    							$$ = createTree(0,NULL,function_node,idx->type,idx->name,$1,NULL,NULL);
+
+    							$$ -> Arglist = NULL;	
+    						}
+
+    |  ID '(' ArgList ')'	{
+    							checkID($1->varname);
+    							CheckIfFunction($1->varname);
+    							struct Gsymbol* idx = Lookup2($1->varname);
+
+    							CheckInformalParamList($1->varname,NULL);
+
+    							$$ = createTree(0,NULL,function_node,idx->type,idx->name,$1,$3,NULL);
+
+    							$$ -> Arglist = $3;
+    						}
     ;
 
+ArgList : ArgList ',' expr	
+					{
+						$$ = createTree(0,NULL,arg_node,-1,NULL,$1,$3,NULL);
+					}
+
+		| expr    	{
+						$$ = createTree(0,NULL,arg_node,-1,NULL,$1,NULL,NULL);
+					}
+		;
 
 %%
 
 void yyerror(char *S)
 {
-    printf("\n%s",S);
+    printf("Line number : %d\n%s",line,S);
 }
 
 int main(int argc,char* argv[])
 {
-    fp = fopen("/home/shrey/xsm_expl/progs/stage4/input.xsm","w");
+	line = 1;
+    fp = fopen("/home/shrey/xsm_expl/progs/stage5/input.xsm","w");
 
     fp_read = fopen(argv[1],"r");
     yyin = fp_read;

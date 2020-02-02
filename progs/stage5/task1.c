@@ -62,7 +62,7 @@ void CheckIfArray(char* varname)
 		exit(1);
 	} 
 
-	if(idx->array_type == 0)
+	if(idx->_type == 0)
 	{
 		printf("Error : %s is not array type\n",varname);
 		exit(1);
@@ -160,21 +160,33 @@ void checkID(char* varname)
 {
 	if(!Lookup2(varname))
     {
-    	printf("Error : %s Variable not declared\n",varname);
+    	printf("Error : %s Variable/function not declared\n",varname);
     	exit(1);
     }                                
 }
 
-void Install(char* variable_name, int ttype, int array_type, int size)
+void Install(char* variable_name, int ttype, int _type, int size)
 {
 	struct Gsymbol* tmp = Lookup(variable_name);
 
 	struct Gsymbol* new_entry = (struct Gsymbol*)malloc(sizeof(struct Gsymbol));
 	new_entry -> name = variable_name;
 	new_entry -> type = ttype;
-	new_entry -> array_type = array_type;
+	new_entry -> _type = _type;
 	new_entry -> size = size;
-	new_entry -> binding = bind;
+	new_entry -> ParamList = NULL;
+	new_entry -> LocalSymbols = NULL;
+	new_entry -> next = NULL;
+
+	if(_type != 2)
+	{
+		new_entry -> binding = bind;
+		bind += size;
+	}
+	else
+	{
+		new_entry -> binding = get_label();
+	}
 
 	if(start == NULL)
 	{
@@ -186,20 +198,292 @@ void Install(char* variable_name, int ttype, int array_type, int size)
 		end->next = new_entry;
 		end = new_entry;
 	}
+}
 
-	bind += size;
+void InsertParam(char* name,int type)
+{
+	struct Paramstruct* new_node = (struct Paramstruct*)malloc(sizeof(struct Paramstruct));
+	new_node -> name = name;
+	new_node -> type = variable_type;
+	new_node -> next = NULL;
+
+	if(head == NULL)
+	{
+		head = new_node;
+		tail = new_node;
+	}
+
+	else
+	{
+		tail -> next = new_node;
+		tail = new_node;
+	}
+}
+
+void clearList()
+{
+	head = NULL;
+	tail = NULL;
+}
+
+void clearLSTList()
+{
+	head2 = NULL;
+	tail2 = NULL;
+
+	list_size = 0;
+}
+
+void InsertParamList(char* name)
+{
+	struct Gsymbol* curr = Lookup2(name);
+	curr -> ParamList = head;
+
+	clearList();
+	clearLSTList();
+}
+
+//checks if same local variable name is already present
+void CheckDuplicateLocalSymbol(char* name)
+{
+	struct Lsymbol* curr = head;
+
+	while(curr != NULL)
+	{
+		if(strcmp(curr -> name,name) == 0)
+		{
+			printf("Error %s variable name already present\n",name);
+			exit(1);
+		}
+		curr = curr -> next;
+	}
+}
+
+//insert local symbol into current local symbol list
+void InsertLocalSymbol(char* name,int type)
+{
+	struct Lsymbol* new_node = (struct Lsymbol*)malloc(sizeof(struct Lsymbol));
+	new_node -> name = name;
+	new_node -> type = type;
+	new_node -> binding = ++list_size;
+	new_node -> next = NULL;
+
+	CheckDuplicateLocalSymbol(name);
+
+	if(head2 == NULL)
+	{
+		head2 = tail2 = new_node;
+	}
+	else
+	{
+		tail2 -> next = new_node;
+		tail2 = new_node;
+	}
+}
+
+void InsertLST(char *name)
+{
+	struct Gsymbol* idx = Lookup2(name);
+
+	idx -> LocalSymbols = head2;
+
+	clearLSTList();
 }
 
 void PrintSymbolTable()
 {
 	struct Gsymbol* curr = start;
-	printf("Name            Type      Array_type     Size     Binding\n");
+	printf("Name            Type      _Type     Size     Binding\n");
 	while(curr!=NULL)
 	{
-		printf("%s                %d         %d        %d         %d\n",curr->name,curr->type,curr->array_type,curr->size,curr->binding);
+		printf("%s                %d         %d        %d         %d\n",curr->name,curr->type,curr->_type,curr->size,curr->binding);
 		curr = curr->next;
 	}
 }
+
+void PrintLST(char* name)
+{
+	struct Gsymbol* idx = Lookup2(name);
+
+	struct Lsymbol* curr = idx -> LocalSymbols;
+
+	printf("Function %s: Local variables\n",name);
+	while(curr)
+	{
+		printf("%s   %d    %d\n",curr->name,curr->type,curr->binding);
+		curr = curr -> next;
+	}
+}
+
+void PrintParamList(char* name)
+{
+	struct Gsymbol* idx = Lookup2(name);
+
+	struct Paramstruct* curr = idx -> ParamList;
+	printf("Function %s: Parameters\n",name);
+
+	while(curr)
+	{
+		printf("%s    %d\n",curr->name,curr->type);
+		curr = curr -> next;
+	}
+}
+
+void CheckReturnType(char* name,int type)
+{
+	struct Gsymbol* idx = Lookup2(name);
+
+	if(idx == NULL)
+	{
+		printf("Function %s not declared\n",name);
+		exit(1);
+	}
+
+	if(idx->type != type)
+	{
+		printf("Return type of declared & defined function %s does not match",name);
+		exit(1);
+	}
+}
+
+void CheckIfFunction(char* name)
+{
+	struct Gsymbol* idx = Lookup2(name);
+
+	if(idx -> _type != 2)
+	{
+		printf("%s is not a function\n",name);
+		exit(1);
+	}
+}
+
+void CheckParamList(char *name)
+{
+	struct Gsymbol* idx = Lookup2(name);
+
+	struct Paramstruct* curr = idx -> ParamList;
+	struct Paramstruct* curr2 = head;
+	while(curr && curr2)
+	{
+		if(curr -> type != curr2 ->type)
+		{
+			printf("%s function declaration & definition param do not match\n",name);
+			exit(1);
+		}
+
+		curr -> name = curr2 -> name;
+
+		curr = curr -> next;
+		curr2 = curr2 -> next;
+	}
+
+	if(curr != curr2)
+	{
+		printf("%s function declaration & definition param do not match\n",name);
+		exit(1);
+	}
+
+}
+
+struct Paramstruct* InorderTraversal(struct tnode* tt,struct Paramstruct* h,struct Paramstruct* t)
+{
+	if(!tt)
+		return h;
+
+	h = InorderTraversal(tt->left,h,t);
+
+	if(tt->type != assign_node)
+	{
+		if(h == NULL)
+		{
+			h = (struct Paramstruct*)malloc(sizeof(Paramstruct));
+			h -> type = tt->ttype;
+			h -> next = NULL;
+
+			t = h;
+		}
+		else
+		{
+			struct Paramstruct* new_node = (struct Paramstruct*)malloc(sizeof(Paramstruct));
+			new_node -> type = tt->ttype;
+			new_node -> next = NULL;
+
+			t -> next = new_node;
+			t = new_node;	
+		}
+	}
+
+	h = InorderTraversal(tt->right,h,t);
+
+	return h;
+}
+
+void CheckInformalParamList(char* name,struct tnode* tt)
+{
+	struct Paramstruct* h = NULL;
+	struct Paramstruct* t = NULL;
+
+	h = InorderTraversal(tt,h,t);
+
+	struct Gsymbol* idx = Lookup2(name);
+	struct Paramstruct* curr = idx -> ParamList;
+	struct Paramstruct* curr2 = h;
+
+	while(curr && curr2)
+	{
+		if(curr -> type != curr2 ->type)
+		{
+			printf("%s \n",name);
+			exit(1);
+		}
+
+		curr = curr -> next;
+		curr2 = curr2 -> next;
+	}
+
+	if(curr != curr2)
+	{
+		printf("%s function declaration & definition param do not match\n",name);
+		exit(1);
+	}	
+
+}
+
+
+void ActRecordSetup(char* name)
+{
+	struct Gsymbol* idx = Lookup2(name);
+	fprintf(fp,"F%d: ",idx->binding);	//label for the function
+	fprintf(fp,"PUSH BP\n");
+    fprintf(fp,"MOV BP,SP\n");
+			
+	//now push local variables(contained in LocalSymbols)
+	struct Lsymbol* curr = idx -> LocalSymbols;
+
+	while(curr != NULL)
+	{
+		fprintf(fp,"PUSH R0\n");	//push dummy values
+		curr = curr -> next;
+	}	
+}
+
+void PopLocalVariables(char* name)
+{
+	struct Gsymbol* idx = Lookup2(name);
+	struct Lsymbol* curr = idx -> LocalSymbols;
+
+	int cnts = 0;
+
+	while(curr != NULL)
+	{
+		cnts++;
+		curr = curr -> next;
+	}
+
+	fprintf(fp,"SUB SP,%d\n",cnts);
+}
+
+
 
 int BasicCodeGen(struct tnode* t)
 {

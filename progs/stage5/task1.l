@@ -21,6 +21,7 @@ asgg [a-z][ \t]*[=]
 "str" 	{return STR;}
 "enddecl"	{return ENDDECL;}
 "main"	{return MAIN;}
+"return" {return RETURN;}
 "read"  {return READ;}
 "write" {return WRITE;}
 "if"    {return IF;}
@@ -57,7 +58,7 @@ asgg [a-z][ \t]*[=]
 "<="    {return LTE;}
 ">="    {return GTE;}
 [{}();,\[\]]   {return *yytext;}
-[\n]    {}
+[\n]    {line++;}
 [\t]    {}
 .       {}
 %%

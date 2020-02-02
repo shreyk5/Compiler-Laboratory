@@ -34,14 +34,44 @@
 #define assignArray_node 34
 #define readArray_node 35
 #define mod_node 36
+#define function_node 37
+#define arg_node 38
+
+int line;
+
+typedef struct Paramstruct{
+
+	char* name;
+	int type;	//int or string
+	struct Paramstruct* next;
+
+} Paramstruct;
+
+struct Paramstruct* head;	//for saving parameters
+struct Paramstruct* tail;
+
+typedef struct Lsymbol {
+
+	char* name;	//name of the variable
+	int type;	//variable type(intger or string)
+	int binding;	
+	struct Lsymbol* next;	//pointer to next variable
+
+} Lsymbol;
+
+struct Lsymbol* head2;
+struct Lsymbol* tail2;
+int list_size;
 
 typedef struct Gsymbol {
 
 	char *name;	//name of the variable
 	int type;	//type of the variable
-	int array_type;	//1 if array
+	int _type;	//0 for simple variable,1 for array, 2 for function
 	int size;	
 	int binding;	//static memory address corresponding to the variable
+	struct Paramstruct *ParamList;
+	struct Lsymbol* LocalSymbols;
 	struct Gsymbol* next;	//next table entry
 
 } Gsymbol;
@@ -59,7 +89,7 @@ typedef struct tnode {
 	int type;	//type of node
 	char* varname;	//name of a variable for ID nodes  
 	int ttype;  // int type or bool type
-	struct Gsymbol* Gentry;	//pointer to GST entry
+	struct tnode* Arglist;
 	struct tnode *left,*right,*mid;	//left,right and mid branches   
 }tnode;
 
