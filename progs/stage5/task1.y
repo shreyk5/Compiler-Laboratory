@@ -167,6 +167,7 @@ asgStmt : ID ASSIGN expr ';'        {
 
         |  ID '[' expr ']' ASSIGN expr ';'      
                                     {
+                                    checkID($1->varname);
                                     CheckIfArray($1->varname);
                                     CheckIntType($3);
                                     AssignCheckType($1,$6);
@@ -175,15 +176,26 @@ asgStmt : ID ASSIGN expr ';'        {
 
 inputStmt : READ '(' ID ')' ';'     {
         checkID($3->varname);
+        MatchType($3,var_node);
+
         $$ = createTree(0,NULL,read_node,-1,NULL,$3,NULL,NULL);}
 
         | READ '(' ID '[' expr ']'  ')' ';'     {
+        checkID($3->varname);
         CheckIfArray($3->varname);
         CheckIntType($5);
         $$ = createTree(0,NULL,readArray_node,-1,NULL,$3,$5,NULL);}
         ;
 
-outputStmt : WRITE '(' expr ')' ';' {$$ = createTree(0,NULL,write_node,-1,NULL,$3,NULL,NULL);};
+outputStmt : WRITE '(' expr ')' ';' {
+
+if($3->ttype != int_type || $3->ttype != str_type)
+{
+    yyerror("Incorrect type in write\n");
+}
+$$ = createTree(0,NULL,write_node,-1,NULL,$3,NULL,NULL);
+
+};
 
 IfStmt : 	IF '(' expr ')' THEN SLIST ENDIF ';'	{
 CheckBoolType($3);
@@ -278,7 +290,7 @@ expr : expr PLUS expr   {CheckType($1,$3);
 
 ArgList : ArgList ',' expr	
 					{
-						$$ = createTree(0,NULL,arg_node,-1,NULL,$1,$3,NULL);
+						$$ = createTree(0,NULL,arg_node,-1,NULL,$3,$1,NULL);
 					}
 
 		| expr    	{

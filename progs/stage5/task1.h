@@ -43,6 +43,7 @@ typedef struct Paramstruct{
 
 	char* name;
 	int type;	//int or string
+	int binding;
 	struct Paramstruct* next;
 
 } Paramstruct;
@@ -66,7 +67,7 @@ int list_size;
 typedef struct Gsymbol {
 
 	char *name;	//name of the variable
-	int type;	//type of the variable
+	int type;	//type of the variable(int,str)
 	int _type;	//0 for simple variable,1 for array, 2 for function
 	int size;	
 	int binding;	//static memory address corresponding to the variable
@@ -79,6 +80,7 @@ typedef struct Gsymbol {
 struct Gsymbol* start;
 struct Gsymbol* end;
 int bind;
+int bind_param;
 int variable_type;
 
 struct Gsymbol* Lookup2(char* variable_name);
@@ -88,7 +90,7 @@ typedef struct tnode {
 	char* str_val; //string for STRING nodes
 	int type;	//type of node
 	char* varname;	//name of a variable for ID nodes  
-	int ttype;  // int type or bool type
+	int ttype;  // int type or string or bool type
 	struct tnode* Arglist;
 	struct tnode *left,*right,*mid;	//left,right and mid branches   
 }tnode;
