@@ -1,29 +1,43 @@
 decl
-	int a,b,f(int c);
-	int fact(int k);
+	int a,b;
+	int fact(int k),print();
+	int g(int c);
 enddecl
 
-int f(int c)
+int fact(int n)
 {
 	decl
-		int shrey;
+		int x,y,z,f;
 	enddecl
 	begin
-		write("hi");
+		if(n<=1) then
+			f=1;
+		else
+		 	f = n*fact(n-1);
+		endif;
+
+		return f;
+	end
+}
+
+int print()
+{
+	decl
+	enddecl
+	begin
+		write(" ");
 		return 1;
 	end
 }
 
-int fact(int a)
+int g(int a)
 {
 	decl
-		int x,y,z;
 	enddecl
-
 	begin
-		write("hi");
-		return 1;
-	end
+		write("g here");
+		return a;
+	end	
 }
 
 int main()
@@ -32,7 +46,11 @@ int main()
 		int abc;
 	enddecl
 	begin
-	    write("hi");
-		return 1;
+	    write("hi shrey");
+	    read(abc);
+	    abc = fact(g(abc));
+	    write(abc);
+	    abc = print();
+	    return 1;
 	end
 }

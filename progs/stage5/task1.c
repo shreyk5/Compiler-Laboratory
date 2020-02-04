@@ -36,7 +36,7 @@ void free_reg()
         used--;
 }
 
-int label = -1;
+int label = 0;
 int get_label()
 {
     label++;
@@ -72,7 +72,7 @@ void CheckType(struct tnode* t1,struct tnode* t2)
 {
     if(!(t1->ttype == int_type && t2->ttype == int_type))
     {
-        yyerror("Error:Type mismatch of operands");
+        printf("Error:Type mismatch of operands");
         exit(1);
     }
 }
@@ -81,7 +81,7 @@ void MatchType(struct tnode* t,int type)
 {
     if(t->type != type)
     {
-        yyerror("Error:Type mismatch\n");
+        printf("Error:Type mismatch\n");
         exit(1);
     }
 }
@@ -108,6 +108,7 @@ void AssignCheckType(struct tnode* t1,struct tnode* t2)
 	//printf("%d %d",t1->ttype,t2->ttype);
     if(!((t1->ttype == int_type && t2->ttype == int_type) || (t1->ttype == str_type && t2->ttype == str_type)))
     {
+        printf("%d,%d",t1->ttype,t2->ttype);
         printf("Error:Type mismatch of operands\n");
         exit(1);
     }
@@ -210,7 +211,7 @@ void checkID(char* varname)
 
 	if(!curr1 && !curr2 && !curr3)
     {
-    	yyerror("Error : %s Variable/function not declared",varname);
+    	printf("Error : %s Variable/function not declared",varname);
     	exit(1);
     }                                
 }
@@ -248,6 +249,17 @@ void Install(char* variable_name, int ttype, int _type, int size)
 		end->next = new_entry;
 		end = new_entry;
 	}
+}
+
+void PLocal()
+{
+    struct Lsymbol* curr = head2;
+
+    while(curr)
+    {
+        printf("%s   %d    %d\n",curr->name,curr->type,curr->binding);
+        curr = curr->next;
+    }
 }
 
 void InsertParam(char* name,int type)
@@ -292,14 +304,12 @@ void InsertParamList(char* name)
 	struct Gsymbol* curr = Lookup2(name);
 	curr -> ParamList = head;
 
-	clearParamList();
-	clearLSTList();
 }
 
 //checks if same local variable name is already present
 void CheckDuplicateLocalSymbol(char* name)
 {
-	struct Lsymbol* curr = head;
+	struct Lsymbol* curr = head2;
 
 	while(curr != NULL)
 	{
@@ -340,7 +350,6 @@ void InsertLST(char *name)
 
 	idx -> LocalSymbols = head2;
 
-	clearLSTList();
 }
 
 void PrintSymbolTable()
@@ -370,16 +379,23 @@ void PrintLST(char* name)
 
 void PrintParamList(char* name)
 {
-	struct Gsymbol* idx = Lookup2(name);
+    struct Paramstruct* curr = head;
+    printf("Function %s: Parameters\n",name);    
+    while(curr)
+    {
+     printf("%s    %d\n",curr->name,curr->type);
+     curr = curr -> next;
+    }
+	// struct Gsymbol* idx = Lookup2(name);
 
-	struct Paramstruct* curr = idx -> ParamList;
-	printf("Function %s: Parameters\n",name);
+	// struct Paramstruct* curr = idx -> ParamList;
+	// printf("Function %s: Parameters\n",name);
 
-	while(curr)
-	{
-		printf("%s    %d\n",curr->name,curr->type);
-		curr = curr -> next;
-	}
+	// while(curr)
+	// {
+	// 	printf("%s    %d\n",curr->name,curr->type);
+	// 	curr = curr -> next;
+	// }
 }
 
 void CheckReturnType(char* name,int type)
@@ -438,68 +454,52 @@ void CheckParamList(char *name)
 
 }
 
-struct Paramstruct* InorderTraversal(struct tnode* tt,struct Paramstruct* h,struct Paramstruct* t)
+
+void CheckInformalParamList(struct tnode* t,struct tnode* tt)
 {
-	if(!tt)
-		return h;
+	struct Paramstruct* curr = Lookup2(t->left->varname)->ParamList;
+	struct tnode* curr2;
 
-	h = InorderTraversal(tt->left,h,t);
+    int cnt_formal = 0;
+    while(curr)
+    {
+        cnt_formal++;
+        curr = curr->next;
+    }
+    curr = Lookup2(t->left->varname)->ParamList;
 
-	if(tt->type != assign_node)
-	{
-		if(h == NULL)
-		{
-			h = (struct Paramstruct*)malloc(sizeof(Paramstruct));
-			h -> type = tt->ttype;
-			h -> next = NULL;
+    int cnt_informal = 0;
+    curr2 = t->right; 
+    while(curr2)
+    {
+        cnt_informal++;
+        curr2 = curr2 -> right;
+    }
 
-			t = h;
-		}
-		else
-		{
-			struct Paramstruct* new_node = (struct Paramstruct*)malloc(sizeof(Paramstruct));
-			new_node -> type = tt->ttype;
-			new_node -> next = NULL;
+    if(cnt_informal != cnt_formal)
+    {
+        printf("%s Incorrect no. of arguments",t->left->varname);
+    }
 
-			t -> next = new_node;
-			t = new_node;	
-		}
-	}
+    cnt_informal--;
+    while(curr)
+    {
+        curr2 = t->right;
 
-	h = InorderTraversal(tt->right,h,t);
+        for(int i=0;i<cnt_informal;i++)
+        {
+            curr2 = curr2 -> right;
+        }
 
-	return h;
-}
-
-void CheckInformalParamList(char* name,struct tnode* tt)
-{
-	struct Paramstruct* h = NULL;
-	struct Paramstruct* t = NULL;
-
-	h = InorderTraversal(tt,h,t);
-
-	struct Gsymbol* idx = Lookup2(name);
-	struct Paramstruct* curr = idx -> ParamList;
-	struct Paramstruct* curr2 = h;
-
-	while(curr && curr2)
-	{
-		if(curr -> type != curr2 ->type)
-		{
-			printf("%s \n",name);
-			exit(1);
-		}
-
-		curr = curr -> next;
-		curr2 = curr2 -> next;
-	}
-
-	if(curr != curr2)
-	{
-		printf("%s function declaration & definition param do not match\n",name);
-		exit(1);
-	}	
-
+        if(curr->type != curr2->left->ttype)
+        {
+            printf("%s function declaration & definition param do not match\n",t->left->varname);
+            exit(1);    
+        }
+        cnt_informal--;
+        curr = curr -> next;
+    }
+	
 }
 
 
@@ -512,12 +512,14 @@ void ActRecordSetup(char* name)
 			
 	//now push local variables(contained in LocalSymbols)
 	struct Lsymbol* curr = idx -> LocalSymbols;
-
+    int local_vars = 0;
 	while(curr != NULL)
 	{
-		fprintf(fp,"PUSH R0\n");	//push dummy values
+		local_vars++;
 		curr = curr -> next;
 	}	
+
+    fprintf(fp,"ADD SP,%d\n",local_vars);
 }
 
 void PopLocalVariables(char* name)
@@ -540,6 +542,8 @@ void PopLocalVariables(char* name)
 
 int BasicCodeGen(struct tnode* t)
 {
+    if(!t)
+        return;
     if(t->type == var_node)
     {
         int i = get_reg();
@@ -580,7 +584,7 @@ int BasicCodeGen(struct tnode* t)
             }
 
             fprintf(fp,"MOV R%d,BP\n",i);
-            fprintf(fp,"SUB R%d,%d\n",i,cnt-cnt1+3);
+            fprintf(fp,"SUB R%d,%d\n",i,2+cnt1);
             fprintf(fp,"MOV R%d,[R%d]\n",i,i);
 
             return i;
@@ -639,6 +643,12 @@ int BasicCodeGen(struct tnode* t)
     	return i;
     }
 
+    else if(t->type == function_node)
+    {
+        int i = FunctionCodeGen(t);
+        return i;
+    }
+
     int p = BasicCodeGen(t->left);
     int q = BasicCodeGen(t->right);
 
@@ -692,21 +702,42 @@ void AssignArrayCodeGen(struct tnode* t)
 
 void readCodeGen(char* c)
 {
-	struct Gsymbol* idx = Lookup2(c);
-	if(idx == NULL)
-	{
-		printf("Variable not declared\n");
-		exit(1);
-	}
+	struct Lsymbol* curr1 = LocalLookup(c);
+    struct Paramstruct* curr2 = ParamLookup(c);
+    struct Gsymbol* curr3 = Lookup2(c);
 
-	int addr = idx->binding;
+    int j = get_reg();
+
+    if(curr1)
+    {
+        fprintf(fp,"MOV R%d,BP\n",j);
+        fprintf(fp,"ADD R%d,%d\n",j,curr1->binding);
+    }
+
+    else if(curr2)
+    {
+        fprintf(fp,"MOV R%d,BP\n",j);
+        fprintf(fp,"ADD R%d,%d\n",j,curr2->binding);
+    }
+
+    else if(curr3)
+    {
+        int addr = curr3->binding;
+        fprintf(fp,"MOV R%d,%d\n",j,addr);
+    }
+
+    else
+    {
+        printf("Error : %s Variable not declared\n",c);
+        exit(1);
+    }
 
     int i = get_reg();  //to push values in the stack
     fprintf(fp,"MOV R%d,\"Read\"\n",i);
     fprintf(fp,"PUSH R%d\n",i);
     fprintf(fp,"MOV R%d,%d\n",i,-1);
     fprintf(fp,"PUSH R%d\n",i);
-    fprintf(fp,"MOV R%d,%d\n",i,addr);
+    fprintf(fp,"MOV R%d,R%d\n",i,j);
     fprintf(fp,"PUSH R%d\n",i);
     fprintf(fp,"PUSH R%d\n",i);
     fprintf(fp,"PUSH R%d\n",i);
@@ -717,7 +748,8 @@ void readCodeGen(char* c)
     fprintf(fp,"POP R%d\n",i);
     fprintf(fp,"POP R%d\n",i);
 
-    free_reg();
+    free_reg(); //for Ri
+    free_reg(); //for Rj
 }
 
 void readArrayCodeGen(struct tnode* t)
@@ -1065,7 +1097,7 @@ void AssignCodeGen(struct tnode* t)
     if(curr1)
     {
         fprintf(fp,"MOV R%d,BP\n",j);
-        fprintf(fp,"ADD R%d,%d\n",curr1->binding);
+        fprintf(fp,"ADD R%d,%d\n",j,curr1->binding);
         fprintf(fp,"MOV [R%d],R%d\n",j,i);
     }
 
@@ -1093,9 +1125,10 @@ void AssignCodeGen(struct tnode* t)
     free_reg();
 }
 
-void FunctionCodeGen(struct tnode* t)
+int FunctionCodeGen(struct tnode* t)
 {
     //save local registers in the stack
+    //printf("function called");
     int stored_reg = used;
     for(int i=0;i<=used;i++)
     {
@@ -1105,23 +1138,21 @@ void FunctionCodeGen(struct tnode* t)
 
     MainCodeGen(t->right);  //for the argument list
 
-    int label = Lookup2(t->left)->binding;  //label of c
+    int label = Lookup2(t->left->varname)->binding;  //label of c
 
-    int i = get_reg();
-    fprintf(fp,"PUSH R%d\n",i); //for return value
-    fprintf(fp,"CALL F%d: \n",label);
-    fprintf(fp,"POP R%d\n",i);
+    fprintf(fp,"ADD SP,1\n"); //for return value
+    fprintf(fp,"CALL F%d\n",label);
+    fprintf(fp,"SUB SP,1\n");
 
-    
     //now pop out the arguments
-    struct Paramstruct* curr = Lookup2(t->left)->ParamList;
+    struct Paramstruct* curr = Lookup2(t->left->varname)->ParamList;
     int parameters = 0;
     while(curr)
     {
         parameters++;
-        fprintf(fp,"POP R%d\n",i);
         curr = curr -> next;
     }
+    fprintf(fp,"SUB SP,%d\n",parameters);   //pop out the arguments
 
     //now pop out stored registers
     for(int j = stored_reg;j>=0;j--)
@@ -1131,11 +1162,41 @@ void FunctionCodeGen(struct tnode* t)
 
     used = stored_reg;  //setting the number of registers back to original value
 
-    i = get_reg();
+    int i = get_reg();
     //now save the return value
     fprintf(fp,"MOV R%d,SP\n",i);
-    fprintf(fp,"ADD R%d,%d\n",i,stored_reg + parameters);
-    fprintf(fp,"MOV R%d,[R%d]\n",i,i);
+    fprintf(fp,"ADD R%d,%d\n",i,stored_reg + parameters + 2);
+    fprintf(fp,"MOV R%d,[R%d]\n",i,i);  //return value stored in Ri
+
+    return i;   
+}
+
+void ArgCodeGen(struct tnode* t)
+{
+
+    if(!t)
+    {
+        return;
+    }
+
+    int i = BasicCodeGen(t->left);
+    fprintf(fp,"PUSH R%d\n",i);
+    free_reg();
+
+    MainCodeGen(t->right);
+}
+
+void ReturnCodeGen(struct tnode* t)
+{
+    int i = BasicCodeGen(t->left);
+    int j = get_reg();
+
+    fprintf(fp,"MOV R%d,BP\n",j);
+    fprintf(fp,"SUB R%d,2\n",j);
+    fprintf(fp,"MOV [R%d],R%d\n",j,i);
+
+    free_reg();
+    free_reg();
 }
 
 void MainCodeGen(struct tnode* t)
@@ -1210,7 +1271,12 @@ void MainCodeGen(struct tnode* t)
 
     else if(t->type == arg_node)
     {
+        ArgCodeGen(t);
+    }
 
+    else if(t->type == return_node)
+    {
+        ReturnCodeGen(t);
     }
 
     else if(t->type == connector_node)
@@ -1231,8 +1297,9 @@ void GenerateHeader()
     fprintf(fp,"0\n");
     fprintf(fp,"0\n");
     fprintf(fp,"BRKP\n");
-    fprintf(fp,"MOV SP,4121\n");
-    
+    fprintf(fp,"MOV SP,%d\n",bind);
+    fprintf(fp,"CALL MAIN\n");
+    fprintf(fp,"INT 10\n");    
 }
 
 void GenerateExit()
@@ -1264,14 +1331,15 @@ void GenerateCode(struct tnode* t)
     GenerateExit();
 }
 
+
 void printTree(struct tnode* t)
 {
 	if(t==NULL)
 		return;
 
-	printTree(t->left);
-	printf("Type : %d\n",t->type);
-	printTree(t->right);
+	printf("left ");printTree(t->left);
+	printf("Mid :Type : %d\n",t->type);
+	printf("right ");printTree(t->right);
 }
 
 

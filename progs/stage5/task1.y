@@ -19,7 +19,8 @@
 
 %token START END DECL ENDDECL MAIN INT STR NUM ASSIGN READ WRITE ID PLUS MINUS MUL DIV MOD IF THEN ELSE ENDIF LT GT EQ NEQ GTE LTE DO WHILE ENDWHILE BREAK CONTINUE REPEAT UNTIL STRING RETURN
 
-%type<node> Program SLIST stmt asgStmt inputStmt outputStmt IfStmt RepeatStmt expr START END NUM ASSIGN READ WRITE ID PLUS MINUS MUL DIV WhileStmt DoWhileStmt BREAK CONTINUE STRING ArgList
+%type<node> Program SLIST stmt asgStmt inputStmt outputStmt IfStmt RepeatStmt expr START END NUM ASSIGN READ WRITE ID PLUS MINUS MUL DIV WhileStmt DoWhileStmt BREAK CONTINUE STRING ArgList FDef Body RetStmt GDeclBlock FDefBlock MainBlock
+DECL ENDDECL
 
 %left PLUS MINUS
 %left MUL DIV MOD
@@ -44,7 +45,8 @@ Type : INT     {variable_type = int_type;}
 
 
 //---------------------------GLOBAL DECLARATION--------------------------------
-GDeclBlock : DECL GDeclList ENDDECL	{PrintSymbolTable();}
+GDeclBlock : DECL GDeclList ENDDECL	{GenerateHeader();
+                                        PrintSymbolTable();}
 			| DECL ENDDECL
 			;
 
@@ -63,8 +65,15 @@ Gid : ID 					{Install($1->varname,variable_type,0,1);}
 	| ID '[' NUM ']'		{Install($1->varname,variable_type,1,$3->val);}
 	| ID '(' ParamList ')'	{
 								Install($1->varname,variable_type,2,1);
-								InsertParamList($1->varname);	
+								InsertParamList($1->varname);
+                                clearParamList();	
 							}
+
+    | ID '(' ')'            {
+                                Install($1->varname,variable_type,2,1);
+                                InsertParamList($1->varname);
+                                clearParamList();   
+                            }
 	;
 //-----------------------------------------------------------------------------
 
@@ -73,26 +82,48 @@ FDefBlock : FDefBlock FDef
 			| FDef
 			;
 
-FDef : Type ID '(' ParamList ')' '{' LDeclBlock Body'}'	
+FDef :  Type ID '(' ParamList ')' '{' LDeclBlock Body'}'	
 		{
 			CheckIfFunction($2->varname);
 			CheckReturnType($2->varname,variable_type);
 			CheckParamList($2->varname);
 			InsertLST($2->varname);
-			PrintLST($2->varname);
-			PrintParamList($2->varname);
+			//PrintLST($2->varname);
+			//PrintParamList($2->varname);
 			ActRecordSetup($2 -> varname);
 
-			//somecodegen($8);
+			MainCodeGen($8);
 
 			PopLocalVariables($2->varname);
 
 			fprintf(fp,"MOV BP,[SP]\n");
 			fprintf(fp,"SUB SP,1\n");
 			fprintf(fp,"RET\n");
-			clearList();	
+			clearParamList();
+            clearLSTList();	
 		}
-		;
+
+    |   Type ID '(' ')' '{' LDeclBlock Body'}'
+        { 
+            CheckIfFunction($2->varname);
+            CheckReturnType($2->varname,variable_type);
+            CheckParamList($2->varname);
+            InsertLST($2->varname);
+            //PrintLST($2->varname);
+            //PrintParamList($2->varname);
+            ActRecordSetup($2 -> varname);
+
+            MainCodeGen($7);
+
+            PopLocalVariables($2->varname);
+
+            fprintf(fp,"MOV BP,[SP]\n");
+            fprintf(fp,"SUB SP,1\n");
+            fprintf(fp,"RET\n");
+            clearParamList();
+            clearLSTList(); 
+        }
+    ;
 
 ParamList : ParamList ',' Param
 			| Param
@@ -107,7 +138,7 @@ LDeclBlock : DECL LDeclList ENDDECL
 			| DECL ENDDECL
 			;
 
-LDeclList : LDeclList ',' LDecl
+LDeclList : LDeclList  LDecl
 			| LDecl
 			;
 
@@ -122,14 +153,49 @@ IDList : IDList ',' ID      {InsertLocalSymbol($3->varname,variable_type);}
 
 //-----------------------------MAIN BLOCK--------------------------------------
 
-MainBlock : INT MAIN '(' ')' '{' LDeclBlock Body '}'	{printf("hi");}
+MainBlock : INT MAIN '(' ')' '{' LDeclBlock Body '}'	{
+            
+            fprintf(fp,"MAIN: ");   //label for the function
+            fprintf(fp,"PUSH BP\n");
+            fprintf(fp,"MOV BP,SP\n");
+                    
+            //now push local variables(contained in LocalSymbols)
+            struct Lsymbol* curr = head2;
+            
+            int local_vars = 0;
+            while(curr != NULL)
+            {
+                local_vars++;
+                curr = curr -> next;
+            }   
+
+            fprintf(fp,"ADD SP,%d\n",local_vars);
+            
+            MainCodeGen($7);
+
+            fprintf(fp,"SUB SP,%d\n",local_vars);
+
+            fprintf(fp,"MOV BP,[SP]\n");
+            fprintf(fp,"SUB SP,1\n");
+            fprintf(fp,"RET\n");
+            clearParamList();
+
+}
 			;
 //-----------------------------------------------------------------------------
 
 
 //------------------------------BODY-------------------------------------------
 
-Body : START SLIST RetStmt END
+Body :  START SLIST RetStmt END 
+        {
+            $$ = createTree(0,NULL,connector_node,-1,NULL,$2,$3,NULL);
+        }
+
+    |   START RetStmt END
+        {
+            $$ = createTree(0,NULL,connector_node,-1,NULL,$2,NULL,NULL);
+        }
 	;
 
 //-----------------------------------------------------------------------------
@@ -144,7 +210,7 @@ SLIST : stmt        {$$ = $1;}
 
 //----------------------------RETURN STATEMENT---------------------------------
 
-RetStmt : RETURN expr ';'
+RetStmt : RETURN expr ';'   {$$ = createTree(0,NULL,return_node,$2->ttype,NULL,$2,NULL,NULL);}
 		;
 //-----------------------------------------------------------------------------
 
@@ -189,7 +255,7 @@ inputStmt : READ '(' ID ')' ';'     {
 
 outputStmt : WRITE '(' expr ')' ';' {
 
-if($3->ttype != int_type || $3->ttype != str_type)
+if($3->ttype != int_type && $3->ttype != str_type)
 {
     yyerror("Incorrect type in write\n");
 }
@@ -250,8 +316,7 @@ expr : expr PLUS expr   {CheckType($1,$3);
                                 $$ = createTree(0,NULL,lte_node,bool_type,NULL,$1,$3,NULL);}
 
     |  expr GTE expr    {CheckType($1,$3);
-                                $$ = createTree(0,NULL,gte_node,bool_type,NULL,$1,$3,NULL);}
-    ;                                
+                                $$ = createTree(0,NULL,gte_node,bool_type,NULL,$1,$3,NULL);}                      
 
     | '(' expr ')'      {$$ = $2;}
     |  ID               {checkID($1->varname); $$ = $1;}
@@ -268,10 +333,10 @@ expr : expr PLUS expr   {CheckType($1,$3);
     							CheckIfFunction($1->varname);
     							struct Gsymbol* idx = Lookup2($1->varname);
 
-    							CheckInformalParamList($1->varname,NULL);
-
     							$$ = createTree(0,NULL,function_node,idx->type,idx->name,$1,NULL,NULL);
 
+                                CheckInformalParamList($$,NULL);
+                                    
     							$$ -> Arglist = NULL;	
     						}
 
@@ -280,9 +345,10 @@ expr : expr PLUS expr   {CheckType($1,$3);
     							CheckIfFunction($1->varname);
     							struct Gsymbol* idx = Lookup2($1->varname);
 
-    							CheckInformalParamList($1->varname,NULL);
+                                $$ = createTree(0,NULL,function_node,idx->type,idx->name,$1,$3,NULL);
 
-    							$$ = createTree(0,NULL,function_node,idx->type,idx->name,$1,$3,NULL);
+                                CheckInformalParamList($$,$3);
+                                
 
     							$$ -> Arglist = $3;
     						}

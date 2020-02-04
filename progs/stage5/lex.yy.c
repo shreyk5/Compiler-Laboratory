@@ -899,16 +899,23 @@ YY_RULE_SETUP
 case 22:
 YY_RULE_SETUP
 #line 38 "task1.l"
-{ str = strdup(yytext); yylval.node = createTree(0,NULL,var_node,-1,str,(tnode*)NULL,(tnode*)NULL,(tnode*)NULL); if(Lookup2(str)){yylval.node = createTree(0,NULL,var_node,Lookup2(str)->type,str,(tnode*)NULL,(tnode*)NULL,(tnode*)NULL);} return ID;  }
+{ 
+                            str = strdup(yytext); yylval.node = createTree(0,NULL,var_node,-1,str,(tnode*)NULL,(tnode*)NULL,(tnode*)NULL); 
+                            if(LocalLookup(str)){yylval.node = createTree(0,NULL,var_node,LocalLookup(str)->type,str,(tnode*)NULL,(tnode*)NULL,(tnode*)NULL);} 
+                            else if(ParamLookup(str)){yylval.node = createTree(0,NULL,var_node,ParamLookup(str)->type,str,(tnode*)NULL,(tnode*)NULL,(tnode*)NULL);} 
+                            else if(Lookup2(str)){yylval.node = createTree(0,NULL,var_node,Lookup2(str)->type,str,(tnode*)NULL,(tnode*)NULL,(tnode*)NULL);} 
+                            
+                            return ID;      
+                       }
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 39 "task1.l"
+#line 46 "task1.l"
 {n = atoi(yytext); yylval.node = createTree(n,NULL,num_node,int_type,(char*)NULL,(tnode*)NULL,(tnode*)NULL,(tnode*)NULL); return NUM;}
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 40 "task1.l"
+#line 47 "task1.l"
 {
 
 	//printf("%s\n",yytext);
@@ -920,91 +927,91 @@ YY_RULE_SETUP
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 48 "task1.l"
+#line 55 "task1.l"
 {return PLUS;}
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 49 "task1.l"
+#line 56 "task1.l"
 {return MINUS;}
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 50 "task1.l"
+#line 57 "task1.l"
 {return MUL;}
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 51 "task1.l"
+#line 58 "task1.l"
 {return DIV;}
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 52 "task1.l"
+#line 59 "task1.l"
 {return MOD;}
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 53 "task1.l"
+#line 60 "task1.l"
 {return ASSIGN;}
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 54 "task1.l"
+#line 61 "task1.l"
 {return LT;}
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 55 "task1.l"
+#line 62 "task1.l"
 {return GT;}
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 56 "task1.l"
+#line 63 "task1.l"
 {return EQ;}
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 57 "task1.l"
+#line 64 "task1.l"
 {return NEQ;}
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 58 "task1.l"
+#line 65 "task1.l"
 {return LTE;}
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 59 "task1.l"
+#line 66 "task1.l"
 {return GTE;}
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 60 "task1.l"
+#line 67 "task1.l"
 {return *yytext;}
 	YY_BREAK
 case 38:
 /* rule 38 can match eol */
 YY_RULE_SETUP
-#line 61 "task1.l"
+#line 68 "task1.l"
 {line++;}
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 62 "task1.l"
+#line 69 "task1.l"
 {}
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
-#line 63 "task1.l"
+#line 70 "task1.l"
 {}
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 64 "task1.l"
+#line 71 "task1.l"
 ECHO;
 	YY_BREAK
-#line 1008 "lex.yy.c"
+#line 1015 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -2009,7 +2016,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 64 "task1.l"
+#line 71 "task1.l"
 
 
 int yywrap()

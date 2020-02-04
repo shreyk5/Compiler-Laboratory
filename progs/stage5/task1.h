@@ -36,6 +36,7 @@
 #define mod_node 36
 #define function_node 37
 #define arg_node 38
+#define return_node 39
 
 int line;
 
@@ -83,6 +84,8 @@ int bind;
 int bind_param;
 int variable_type;
 
+struct Lsymbol* LocalLookup(char* variable_name);
+struct Paramstruct* ParamLookup(char* variable_name);
 struct Gsymbol* Lookup2(char* variable_name);
 
 typedef struct tnode { 
@@ -105,3 +108,4 @@ typedef struct stack_node{
 } stack_node;
 
 stack_node* top;
+void clearParamList();

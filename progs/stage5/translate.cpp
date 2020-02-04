@@ -1,6 +1,8 @@
 #include<bits/stdc++.h>
 using namespace std;
 
+const int inf = 1e9;
+
 int main()
 {
 	ifstream fp0("input.xsm");
@@ -26,30 +28,40 @@ int main()
 				{
 					test += s[j];
 					//cout<<test<<endl;
-					if(test == "LABEL")
+					if(test == "LABEL" || test == "F" || test == "MAIN")
 					{
-						//cout<<"ho";
-						int lbl1 = 0;
-						j++;
-						while(j<n)
-						{
-							//cout<<s[j];
-							if(s[j] == ':')
-							{
-								store = 1;
-								break;
-							}
-
-							lbl1 = lbl1*10 + s[j]-'0';
-							
+							int lbl1 = 0;
 							j++;
+							while(j<n)
+							{
+								//cout<<s[j];
+								if(s[j] == ':')
+								{
+									store = 1;
+									break;
+								}
+
+								lbl1 = lbl1*10 + s[j]-'0';
+								
+								j++;
+							}
+							if(store)
+							{
+								if(test == "MAIN")
+								{
+									Address[-inf] = 2056 + (line-9)*2;
+								}
+								else if(test == "LABEL")
+									Address[lbl1] = 2056 + (line-9)*2;
+								else
+								{
+									Address[-lbl1] = 2056 + (line-9)*2;
+								}
+							}
+							store = 0;
+							//cout<<lbl1<<endl; 
+							//cout<<Address[lbl1]<<endl;
 						}
-						if(store)
-						Address[lbl1] = 2056 + (line-9)*2;
-						store = 0;
-						//cout<<lbl1<<endl; 
-						//cout<<Address[lbl1]<<endl;
-					}
 				}
 			}
 		}
@@ -67,7 +79,7 @@ int main()
 		int add_address = 0;
 		int lbl = 0;
 
-		if(n>=5)
+		if(1)
 		{
 			for(int i=0;i<n;i++)
 			{
@@ -77,7 +89,7 @@ int main()
 					test += s[j];
 					int poss = 1;
 					int save_j = j;
-					if(test == "LABEL")
+					if(test == "LABEL" || test == "F" || test == "MAIN")
 					{
 						while(j<n)
 						{
@@ -94,16 +106,28 @@ int main()
 					}
 
 					j = save_j;
-					if(test == "LABEL" && poss)
+					if((test == "LABEL" || test == "F" || test == "MAIN") && poss)
 					{
 						//cout<<"hi";
+
 						add_address = 1;
 						end = i-1;
-						j++;
-						while(j<n)
+
+						if(test == "MAIN")
 						{
-							lbl = lbl*10 + s[j]-'0';
+							lbl = -inf;
+						}
+
+						else
+						{
 							j++;
+							while(j<n)
+							{
+								lbl = lbl*10 + s[j]-'0';
+								j++;
+							}
+							if(test == "F")
+								lbl = -lbl;
 						}
 					}	
 				}

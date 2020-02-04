@@ -35,7 +35,14 @@ asgg [a-z][ \t]*[=]
 "endwhile"  {return ENDWHILE;}
 "break" {yylval.node = createTree(0,NULL,break_node,-1,NULL,NULL,NULL,NULL); return BREAK;}
 "continue" {yylval.node = createTree(0,NULL,continue_node,-1,NULL,NULL,NULL,NULL); return CONTINUE;}
-[a-zA-Z][a-zA-Z0-9]*   { str = strdup(yytext); yylval.node = createTree(0,NULL,var_node,-1,str,(tnode*)NULL,(tnode*)NULL,(tnode*)NULL); if(Lookup2(str)){yylval.node = createTree(0,NULL,var_node,Lookup2(str)->type,str,(tnode*)NULL,(tnode*)NULL,(tnode*)NULL);} return ID;  }
+[a-zA-Z][a-zA-Z0-9]*   { 
+                            str = strdup(yytext); yylval.node = createTree(0,NULL,var_node,-1,str,(tnode*)NULL,(tnode*)NULL,(tnode*)NULL); 
+                            if(LocalLookup(str)){yylval.node = createTree(0,NULL,var_node,LocalLookup(str)->type,str,(tnode*)NULL,(tnode*)NULL,(tnode*)NULL);} 
+                            else if(ParamLookup(str)){yylval.node = createTree(0,NULL,var_node,ParamLookup(str)->type,str,(tnode*)NULL,(tnode*)NULL,(tnode*)NULL);} 
+                            else if(Lookup2(str)){yylval.node = createTree(0,NULL,var_node,Lookup2(str)->type,str,(tnode*)NULL,(tnode*)NULL,(tnode*)NULL);} 
+                            
+                            return ID;      
+                       }
 {num}   {n = atoi(yytext); yylval.node = createTree(n,NULL,num_node,int_type,(char*)NULL,(tnode*)NULL,(tnode*)NULL,(tnode*)NULL); return NUM;}
 [\"](.)*[\"] {
 
