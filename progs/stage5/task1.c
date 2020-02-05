@@ -205,15 +205,15 @@ struct Paramstruct* ParamLookup(char* variable_name)
 void checkID(char* varname)
 {
 
-    struct Lsymbol* curr1 = LocalLookup(varname);
-    struct Paramstruct* curr2 = ParamLookup(varname);
-    struct Gsymbol* curr3 = Lookup2(varname); 
+   struct Lsymbol* curr1 = LocalLookup(varname);
+   struct Paramstruct* curr2 = ParamLookup(varname);
+   struct Gsymbol* curr3 = Lookup2(varname); 
 
 	if(!curr1 && !curr2 && !curr3)
-    {
+   {	
     	printf("Error : %s Variable/function not declared",varname);
     	exit(1);
-    }                                
+   }                                
 }
 
 void Install(char* variable_name, int ttype, int _type, int size)
@@ -267,7 +267,7 @@ void InsertParam(char* name,int type)
 	struct Paramstruct* new_node = (struct Paramstruct*)malloc(sizeof(struct Paramstruct));
 	new_node -> name = name;
 	new_node -> type = variable_type;
-    new_node -> binding = bind_param--;
+    	new_node -> binding = bind_param--;
 	new_node -> next = NULL;
 
 	if(head == NULL)
@@ -288,7 +288,7 @@ void clearParamList()
 	head = NULL;
 	tail = NULL;
 
-    bind_param = -3;
+    	bind_param = -3;
 }
 
 void clearLSTList()
@@ -383,8 +383,8 @@ void PrintParamList(char* name)
     printf("Function %s: Parameters\n",name);    
     while(curr)
     {
-     printf("%s    %d\n",curr->name,curr->type);
-     curr = curr -> next;
+     	printf("%s    %d\n",curr->name,curr->type);
+     	curr = curr -> next;
     }
 	// struct Gsymbol* idx = Lookup2(name);
 
@@ -408,7 +408,7 @@ void CheckReturnType(char* name,int type)
 		exit(1);
 	}
 
-    if(idx->type != type)
+    	if(idx->type != type)
 	{
 		printf("Return type of declared & defined function %s does not match",name);
 		exit(1);
@@ -517,18 +517,18 @@ void ActRecordSetup(char* name)
 	struct Gsymbol* idx = Lookup2(name);
 	fprintf(fp,"F%d: ",idx->binding);	//label for the function
 	fprintf(fp,"PUSH BP\n");
-    fprintf(fp,"MOV BP,SP\n");
+    	fprintf(fp,"MOV BP,SP\n");
 			
 	//now push local variables(contained in LocalSymbols)
 	struct Lsymbol* curr = idx -> LocalSymbols;
-    int local_vars = 0;
+    	int local_vars = 0;
 	while(curr != NULL)
 	{
 		local_vars++;
 		curr = curr -> next;
 	}	
 
-    fprintf(fp,"ADD SP,%d\n",local_vars);
+    	fprintf(fp,"ADD SP,%d\n",local_vars);
 }
 
 void PopLocalVariables(char* name)
@@ -701,15 +701,15 @@ void AssignArrayCodeGen(struct tnode* t)
     fprintf(fp,"MOV R%d,%d\n",k,addr);	//value of base address
     fprintf(fp,"ADD R%d,R%d\n",k,j);	//now k contains final address
     fprintf(fp,"MOV [R%d],R%d\n",k,i);
-
+	
     free_reg();
     free_reg();
     free_reg();
 }
 
 void readCodeGen(char* c)
-{
-	struct Lsymbol* curr1 = LocalLookup(c);
+{	
+    struct Lsymbol* curr1 = LocalLookup(c);
     struct Paramstruct* curr2 = ParamLookup(c);
     struct Gsymbol* curr3 = Lookup2(c);
 
@@ -769,28 +769,28 @@ void readArrayCodeGen(struct tnode* t)
 	}
 
 	int addr = idx->binding;
+	
+   int i = get_reg();  //to push values in the stack
+   int j = BasicCodeGen(t->right);
 
-    int i = get_reg();  //to push values in the stack
-    int j = BasicCodeGen(t->right);
+   fprintf(fp,"MOV R%d,\"Read\"\n",i);
+   fprintf(fp,"PUSH R%d\n",i);
+   fprintf(fp,"MOV R%d,%d\n",i,-1);
+   fprintf(fp,"PUSH R%d\n",i);
+   fprintf(fp,"MOV R%d,%d\n",i,addr);
+   fprintf(fp,"ADD R%d,R%d\n",i,j);
+   fprintf(fp,"PUSH R%d\n",i);
+   fprintf(fp,"PUSH R%d\n",i);
+   fprintf(fp,"PUSH R%d\n",i);
+   fprintf(fp,"CALL 0\n");
+   fprintf(fp,"POP R%d\n",i);
+   fprintf(fp,"POP R%d\n",i);
+   fprintf(fp,"POP R%d\n",i);
+   fprintf(fp,"POP R%d\n",i);
+   fprintf(fp,"POP R%d\n",i);
 
-    fprintf(fp,"MOV R%d,\"Read\"\n",i);
-    fprintf(fp,"PUSH R%d\n",i);
-    fprintf(fp,"MOV R%d,%d\n",i,-1);
-    fprintf(fp,"PUSH R%d\n",i);
-    fprintf(fp,"MOV R%d,%d\n",i,addr);
-    fprintf(fp,"ADD R%d,R%d\n",i,j);
-    fprintf(fp,"PUSH R%d\n",i);
-    fprintf(fp,"PUSH R%d\n",i);
-    fprintf(fp,"PUSH R%d\n",i);
-    fprintf(fp,"CALL 0\n");
-    fprintf(fp,"POP R%d\n",i);
-    fprintf(fp,"POP R%d\n",i);
-    fprintf(fp,"POP R%d\n",i);
-    fprintf(fp,"POP R%d\n",i);
-    fprintf(fp,"POP R%d\n",i);
-
-    free_reg();
-    free_reg();
+   free_reg();
+   free_reg();
 }
 
 void writeCodeGen(struct tnode* t)

@@ -73,7 +73,7 @@
     #include<string.h>
     #include "task1.h"
     FILE *fp;
-   	FILE *fp_read;
+    FILE *fp_read;
     
     #include "task1.c"
     extern FILE* yyin;
@@ -512,13 +512,13 @@ static const yytype_uint8 yytranslate[] =
 static const yytype_uint16 yyrline[] =
 {
        0,    32,    32,    33,    34,    41,    42,    45,    46,    52,
-      54,    57,    58,    61,    64,    65,    68,    69,    70,    76,
-      85,    86,    89,   110,   132,   133,   136,   141,   142,   145,
-     146,   149,   152,   153,   160,   195,   200,   210,   211,   218,
-     223,   224,   225,   226,   227,   228,   229,   230,   231,   234,
-     239,   248,   254,   261,   271,   275,   280,   284,   288,   293,
-     296,   299,   302,   305,   308,   311,   314,   317,   320,   323,
-     326,   327,   328,   334,   335,   336,   348,   362,   367
+      56,    59,    60,    63,    66,    67,    70,    71,    72,    78,
+      87,    88,    91,   112,   134,   135,   138,   143,   144,   147,
+     148,   151,   154,   155,   162,   197,   202,   212,   213,   220,
+     225,   226,   227,   228,   229,   230,   231,   232,   233,   236,
+     242,   252,   260,   269,   279,   285,   292,   298,   304,   311,
+     314,   317,   320,   323,   326,   329,   332,   335,   338,   341,
+     344,   345,   346,   353,   354,   355,   367,   381,   386
 };
 #endif
 
@@ -1503,53 +1503,55 @@ yyreduce:
 
   case 9:
 #line 52 "task1.y"
-    {GenerateHeader();
-                                    PrintSymbolTable();}
-#line 1509 "y.tab.c"
+    {
+	   											GenerateHeader();
+                                   	 	PrintSymbolTable();
+												}
+#line 1511 "y.tab.c"
     break;
 
   case 16:
-#line 68 "task1.y"
+#line 70 "task1.y"
     {Install((yyvsp[0].node)->varname,variable_type,0,1);}
-#line 1515 "y.tab.c"
+#line 1517 "y.tab.c"
     break;
 
   case 17:
-#line 69 "task1.y"
+#line 71 "task1.y"
     {Install((yyvsp[-3].node)->varname,variable_type,1,(yyvsp[-1].node)->val);}
-#line 1521 "y.tab.c"
+#line 1523 "y.tab.c"
     break;
 
   case 18:
-#line 70 "task1.y"
+#line 72 "task1.y"
     {
-								Install((yyvsp[-3].node)->varname,variable_type,2,1);
-                                InsertParamList((yyvsp[-3].node)->varname);
-                                clearParamList();	
-							}
-#line 1531 "y.tab.c"
+										Install((yyvsp[-3].node)->varname,variable_type,2,1);
+                              InsertParamList((yyvsp[-3].node)->varname);
+                              clearParamList();	
+									}
+#line 1533 "y.tab.c"
     break;
 
   case 19:
-#line 76 "task1.y"
+#line 78 "task1.y"
     {
-                                Install((yyvsp[-2].node)->varname,variable_type,2,1);
-                                InsertParamList((yyvsp[-2].node)->varname);
-                                clearParamList();   
-                            }
-#line 1541 "y.tab.c"
+                              Install((yyvsp[-2].node)->varname,variable_type,2,1);
+                              InsertParamList((yyvsp[-2].node)->varname);
+                              clearParamList();   
+                           }
+#line 1543 "y.tab.c"
     break;
 
   case 22:
-#line 90 "task1.y"
+#line 92 "task1.y"
     {
 			CheckIfFunction((yyvsp[-7].node)->varname);
 			CheckReturnType((yyvsp[-7].node)->varname,variable_type);
-            CheckReturnVal((yyvsp[-1].node)->right,variable_type);
+         CheckReturnVal((yyvsp[-1].node)->right,variable_type);
 			CheckParamList((yyvsp[-7].node)->varname);
 			InsertLST((yyvsp[-7].node)->varname);
-			
-            ActRecordSetup((yyvsp[-7].node) -> varname);
+						
+         ActRecordSetup((yyvsp[-7].node) -> varname);
 
 			MainCodeGen((yyvsp[-1].node));
 
@@ -1559,13 +1561,13 @@ yyreduce:
 			fprintf(fp,"SUB SP,1\n");
 			fprintf(fp,"RET\n");
 			clearParamList();
-            clearLSTList();	
+         clearLSTList();	
 		}
-#line 1565 "y.tab.c"
+#line 1567 "y.tab.c"
     break;
 
   case 23:
-#line 111 "task1.y"
+#line 113 "task1.y"
     { 
             CheckIfFunction((yyvsp[-6].node)->varname);
             CheckReturnType((yyvsp[-6].node)->varname,variable_type);
@@ -1585,31 +1587,31 @@ yyreduce:
             clearParamList();
             clearLSTList(); 
         }
-#line 1589 "y.tab.c"
+#line 1591 "y.tab.c"
     break;
 
   case 26:
-#line 136 "task1.y"
+#line 138 "task1.y"
     {
-						  InsertParam((yyvsp[0].node)->varname,p_variable_type);
-					    }
-#line 1597 "y.tab.c"
+									InsertParam((yyvsp[0].node)->varname,p_variable_type);
+								}
+#line 1599 "y.tab.c"
     break;
 
   case 32:
-#line 152 "task1.y"
+#line 154 "task1.y"
     {InsertLocalSymbol((yyvsp[0].node)->varname,variable_type);}
-#line 1603 "y.tab.c"
+#line 1605 "y.tab.c"
     break;
 
   case 33:
-#line 153 "task1.y"
+#line 155 "task1.y"
     {InsertLocalSymbol((yyvsp[0].node)->varname,variable_type);}
-#line 1609 "y.tab.c"
+#line 1611 "y.tab.c"
     break;
 
   case 34:
-#line 160 "task1.y"
+#line 162 "task1.y"
     {
             
             CheckReturnVal((yyvsp[-1].node)->right,int_type);
@@ -1639,353 +1641,361 @@ yyreduce:
             clearParamList();
 
 }
-#line 1643 "y.tab.c"
+#line 1645 "y.tab.c"
     break;
 
   case 35:
-#line 196 "task1.y"
+#line 198 "task1.y"
     {
             (yyval.node) = createTree(0,NULL,connector_node,-1,NULL,(yyvsp[-2].node),(yyvsp[-1].node),NULL);
         }
-#line 1651 "y.tab.c"
+#line 1653 "y.tab.c"
     break;
 
   case 36:
-#line 201 "task1.y"
+#line 203 "task1.y"
     {
             (yyval.node) = createTree(0,NULL,connector_node,-1,NULL,(yyvsp[-1].node),NULL,NULL);
         }
-#line 1659 "y.tab.c"
+#line 1661 "y.tab.c"
     break;
 
   case 37:
-#line 210 "task1.y"
+#line 212 "task1.y"
     {(yyval.node) = (yyvsp[0].node);}
-#line 1665 "y.tab.c"
+#line 1667 "y.tab.c"
     break;
 
   case 38:
-#line 211 "task1.y"
+#line 213 "task1.y"
     {(yyval.node) = createTree(0,NULL,connector_node,-1,NULL,(yyvsp[-1].node),(yyvsp[0].node),NULL);}
-#line 1671 "y.tab.c"
+#line 1673 "y.tab.c"
     break;
 
   case 39:
-#line 218 "task1.y"
+#line 220 "task1.y"
     {(yyval.node) = createTree(0,NULL,return_node,(yyvsp[-1].node)->ttype,NULL,(yyvsp[-1].node),NULL,NULL);}
-#line 1677 "y.tab.c"
+#line 1679 "y.tab.c"
     break;
 
   case 40:
-#line 223 "task1.y"
+#line 225 "task1.y"
     {(yyval.node) = (yyvsp[0].node);}
-#line 1683 "y.tab.c"
+#line 1685 "y.tab.c"
     break;
 
   case 41:
-#line 224 "task1.y"
+#line 226 "task1.y"
     {(yyval.node) = (yyvsp[0].node);}
-#line 1689 "y.tab.c"
+#line 1691 "y.tab.c"
     break;
 
   case 42:
-#line 225 "task1.y"
+#line 227 "task1.y"
     {(yyval.node) = (yyvsp[0].node);}
-#line 1695 "y.tab.c"
+#line 1697 "y.tab.c"
     break;
 
   case 43:
-#line 226 "task1.y"
+#line 228 "task1.y"
     {(yyval.node) = (yyvsp[0].node);}
-#line 1701 "y.tab.c"
+#line 1703 "y.tab.c"
     break;
 
   case 44:
-#line 227 "task1.y"
+#line 229 "task1.y"
     {(yyval.node) = (yyvsp[0].node);}
-#line 1707 "y.tab.c"
+#line 1709 "y.tab.c"
     break;
 
   case 45:
-#line 228 "task1.y"
+#line 230 "task1.y"
     {(yyval.node) = (yyvsp[0].node);}
-#line 1713 "y.tab.c"
+#line 1715 "y.tab.c"
     break;
 
   case 46:
-#line 229 "task1.y"
+#line 231 "task1.y"
     {(yyval.node) = (yyvsp[0].node);}
-#line 1719 "y.tab.c"
+#line 1721 "y.tab.c"
     break;
 
   case 47:
-#line 230 "task1.y"
+#line 232 "task1.y"
     {(yyval.node) = (yyvsp[-1].node);}
-#line 1725 "y.tab.c"
+#line 1727 "y.tab.c"
     break;
 
   case 48:
-#line 231 "task1.y"
+#line 233 "task1.y"
     {(yyval.node) = (yyvsp[-1].node);}
-#line 1731 "y.tab.c"
+#line 1733 "y.tab.c"
     break;
 
   case 49:
-#line 234 "task1.y"
-    {
-                                    checkID((yyvsp[-3].node)->varname);    
-									AssignCheckType((yyvsp[-3].node),(yyvsp[-1].node));
-									(yyval.node) = createTree(0,NULL,assign_node,(yyvsp[-3].node)->ttype,NULL,(yyvsp[-3].node),(yyvsp[-1].node),NULL);}
-#line 1740 "y.tab.c"
+#line 236 "task1.y"
+    {		
+                                    		checkID((yyvsp[-3].node)->varname);    
+														AssignCheckType((yyvsp[-3].node),(yyvsp[-1].node));
+														(yyval.node) = createTree(0,NULL,assign_node,(yyvsp[-3].node)->ttype,NULL,(yyvsp[-3].node),(yyvsp[-1].node),NULL);
+													}
+#line 1743 "y.tab.c"
     break;
 
   case 50:
-#line 240 "task1.y"
+#line 243 "task1.y"
     {
-                                    checkID((yyvsp[-6].node)->varname);
-                                    CheckIfArray((yyvsp[-6].node)->varname);
-                                    CheckIntType((yyvsp[-4].node));
-                                    AssignCheckType((yyvsp[-6].node),(yyvsp[-1].node));
-                                    (yyval.node) = createTree(0,NULL,assignArray_node,(yyvsp[-6].node)->ttype,NULL,(yyvsp[-6].node),(yyvsp[-4].node),(yyvsp[-1].node));}
-#line 1751 "y.tab.c"
+                                    		checkID((yyvsp[-6].node)->varname);
+                                    		CheckIfArray((yyvsp[-6].node)->varname);
+                                    		CheckIntType((yyvsp[-4].node));
+                                    		AssignCheckType((yyvsp[-6].node),(yyvsp[-1].node));
+                                    		(yyval.node) = createTree(0,NULL,assignArray_node,(yyvsp[-6].node)->ttype,NULL,(yyvsp[-6].node),(yyvsp[-4].node),(yyvsp[-1].node));
+													}
+#line 1755 "y.tab.c"
     break;
 
   case 51:
-#line 248 "task1.y"
+#line 253 "task1.y"
     {
-        checkID((yyvsp[-2].node)->varname);
-        MatchType((yyvsp[-2].node),var_node);
+        					checkID((yyvsp[-2].node)->varname);
+        					MatchType((yyvsp[-2].node),var_node);
 
-        (yyval.node) = createTree(0,NULL,read_node,-1,NULL,(yyvsp[-2].node),NULL,NULL);}
-#line 1761 "y.tab.c"
+        					(yyval.node) = createTree(0,NULL,read_node,-1,NULL,(yyvsp[-2].node),NULL,NULL);
+						}
+#line 1766 "y.tab.c"
     break;
 
   case 52:
-#line 254 "task1.y"
-    {
-        checkID((yyvsp[-5].node)->varname);
-        CheckIfArray((yyvsp[-5].node)->varname);
-        CheckIntType((yyvsp[-3].node));
-        (yyval.node) = createTree(0,NULL,readArray_node,-1,NULL,(yyvsp[-5].node),(yyvsp[-3].node),NULL);}
-#line 1771 "y.tab.c"
+#line 261 "task1.y"
+    {	
+        					checkID((yyvsp[-5].node)->varname);
+       					CheckIfArray((yyvsp[-5].node)->varname);
+        					CheckIntType((yyvsp[-3].node));
+        					(yyval.node) = createTree(0,NULL,readArray_node,-1,NULL,(yyvsp[-5].node),(yyvsp[-3].node),NULL);
+						}
+#line 1777 "y.tab.c"
     break;
 
   case 53:
-#line 261 "task1.y"
+#line 270 "task1.y"
     {
+							if((yyvsp[-2].node)->ttype != int_type && (yyvsp[-2].node)->ttype != str_type)
+							{
+    							printf("Incorrect type in write\n");
+							}
+							(yyval.node) = createTree(0,NULL,write_node,-1,NULL,(yyvsp[-2].node),NULL,NULL);
 
-if((yyvsp[-2].node)->ttype != int_type && (yyvsp[-2].node)->ttype != str_type)
-{
-    printf("Incorrect type in write\n");
-}
-(yyval.node) = createTree(0,NULL,write_node,-1,NULL,(yyvsp[-2].node),NULL,NULL);
-
-}
-#line 1785 "y.tab.c"
+						}
+#line 1790 "y.tab.c"
     break;
 
   case 54:
-#line 271 "task1.y"
+#line 280 "task1.y"
     {
-CheckBoolType((yyvsp[-5].node));
-(yyval.node) = createTree(0,NULL,if_node,-1,NULL,(yyvsp[-5].node),(yyvsp[-2].node),NULL);}
-#line 1793 "y.tab.c"
+							CheckBoolType((yyvsp[-5].node));
+							(yyval.node) = createTree(0,NULL,if_node,-1,NULL,(yyvsp[-5].node),(yyvsp[-2].node),NULL);
+						}
+#line 1799 "y.tab.c"
     break;
 
   case 55:
-#line 275 "task1.y"
+#line 286 "task1.y"
     {
-        CheckBoolType((yyvsp[-7].node));
-        (yyval.node) = createTree(0,NULL,ifElse_node,-1,NULL,(yyvsp[-7].node),(yyvsp[-4].node),(yyvsp[-2].node));}
-#line 1801 "y.tab.c"
+        					CheckBoolType((yyvsp[-7].node));
+        					(yyval.node) = createTree(0,NULL,ifElse_node,-1,NULL,(yyvsp[-7].node),(yyvsp[-4].node),(yyvsp[-2].node));
+						}
+#line 1808 "y.tab.c"
     break;
 
   case 56:
-#line 280 "task1.y"
+#line 293 "task1.y"
     {
-CheckBoolType((yyvsp[-5].node));
-(yyval.node) = createTree(0,NULL,while_node,-1,NULL,(yyvsp[-5].node),(yyvsp[-2].node),NULL);}
-#line 1809 "y.tab.c"
-    break;
-
-  case 57:
-#line 284 "task1.y"
-    {
-CheckBoolType((yyvsp[-2].node));
-(yyval.node) = createTree(0,NULL,Dowhile_node,-1,NULL,(yyvsp[-2].node),(yyvsp[-6].node),NULL);}
+							CheckBoolType((yyvsp[-5].node));
+							(yyval.node) = createTree(0,NULL,while_node,-1,NULL,(yyvsp[-5].node),(yyvsp[-2].node),NULL);
+						}
 #line 1817 "y.tab.c"
     break;
 
-  case 58:
-#line 288 "task1.y"
+  case 57:
+#line 299 "task1.y"
     {
-CheckBoolType((yyvsp[-2].node));
-(yyval.node) = createTree(0,NULL,repeat_node,-1,NULL,(yyvsp[-2].node),(yyvsp[-6].node),NULL);}
-#line 1825 "y.tab.c"
+							CheckBoolType((yyvsp[-2].node));
+							(yyval.node) = createTree(0,NULL,Dowhile_node,-1,NULL,(yyvsp[-2].node),(yyvsp[-6].node),NULL);
+						}
+#line 1826 "y.tab.c"
+    break;
+
+  case 58:
+#line 305 "task1.y"
+    {
+							CheckBoolType((yyvsp[-2].node));
+							(yyval.node) = createTree(0,NULL,repeat_node,-1,NULL,(yyvsp[-2].node),(yyvsp[-6].node),NULL);
+						}
+#line 1835 "y.tab.c"
     break;
 
   case 59:
-#line 293 "task1.y"
+#line 311 "task1.y"
     {CheckType((yyvsp[-2].node),(yyvsp[0].node));
-						(yyval.node) = createTree(0,NULL,plus_node,int_type,NULL,(yyvsp[-2].node),(yyvsp[0].node),NULL);}
-#line 1832 "y.tab.c"
+									(yyval.node) = createTree(0,NULL,plus_node,int_type,NULL,(yyvsp[-2].node),(yyvsp[0].node),NULL);}
+#line 1842 "y.tab.c"
     break;
 
   case 60:
-#line 296 "task1.y"
+#line 314 "task1.y"
     {CheckType((yyvsp[-2].node),(yyvsp[0].node));
-    					(yyval.node) = createTree(0,NULL,minus_node,int_type,NULL,(yyvsp[-2].node),(yyvsp[0].node),NULL);}
-#line 1839 "y.tab.c"
+    								(yyval.node) = createTree(0,NULL,minus_node,int_type,NULL,(yyvsp[-2].node),(yyvsp[0].node),NULL);}
+#line 1849 "y.tab.c"
     break;
 
   case 61:
-#line 299 "task1.y"
+#line 317 "task1.y"
     {CheckType((yyvsp[-2].node),(yyvsp[0].node));
-    					(yyval.node) = createTree(0,NULL,mul_node,int_type,NULL,(yyvsp[-2].node),(yyvsp[0].node),NULL);}
-#line 1846 "y.tab.c"
+    								(yyval.node) = createTree(0,NULL,mul_node,int_type,NULL,(yyvsp[-2].node),(yyvsp[0].node),NULL);}
+#line 1856 "y.tab.c"
     break;
 
   case 62:
-#line 302 "task1.y"
+#line 320 "task1.y"
     {CheckType((yyvsp[-2].node),(yyvsp[0].node));
-    					(yyval.node) = createTree(0,NULL,div_node,int_type,NULL,(yyvsp[-2].node),(yyvsp[0].node),NULL);}
-#line 1853 "y.tab.c"
+    								(yyval.node) = createTree(0,NULL,div_node,int_type,NULL,(yyvsp[-2].node),(yyvsp[0].node),NULL);}
+#line 1863 "y.tab.c"
     break;
 
   case 63:
-#line 305 "task1.y"
+#line 323 "task1.y"
     {CheckType((yyvsp[-2].node),(yyvsp[0].node));
-                        (yyval.node) = createTree(0,NULL,mod_node,int_type,NULL,(yyvsp[-2].node),(yyvsp[0].node),NULL);}
-#line 1860 "y.tab.c"
+                        	(yyval.node) = createTree(0,NULL,mod_node,int_type,NULL,(yyvsp[-2].node),(yyvsp[0].node),NULL);}
+#line 1870 "y.tab.c"
     break;
 
   case 64:
-#line 308 "task1.y"
+#line 326 "task1.y"
     {CheckType((yyvsp[-2].node),(yyvsp[0].node));
-                                (yyval.node) = createTree(0,NULL,lt_node,bool_type,NULL,(yyvsp[-2].node),(yyvsp[0].node),NULL);}
-#line 1867 "y.tab.c"
+                        	(yyval.node) = createTree(0,NULL,lt_node,bool_type,NULL,(yyvsp[-2].node),(yyvsp[0].node),NULL);}
+#line 1877 "y.tab.c"
     break;
 
   case 65:
-#line 311 "task1.y"
+#line 329 "task1.y"
     {CheckType((yyvsp[-2].node),(yyvsp[0].node));
-                                (yyval.node) = createTree(0,NULL,gt_node,bool_type,NULL,(yyvsp[-2].node),(yyvsp[0].node),NULL);}
-#line 1874 "y.tab.c"
+                           (yyval.node) = createTree(0,NULL,gt_node,bool_type,NULL,(yyvsp[-2].node),(yyvsp[0].node),NULL);}
+#line 1884 "y.tab.c"
     break;
 
   case 66:
-#line 314 "task1.y"
+#line 332 "task1.y"
     {CheckType((yyvsp[-2].node),(yyvsp[0].node));
-                                (yyval.node) = createTree(0,NULL,eq_node,bool_type,NULL,(yyvsp[-2].node),(yyvsp[0].node),NULL);}
-#line 1881 "y.tab.c"
+                           (yyval.node) = createTree(0,NULL,eq_node,bool_type,NULL,(yyvsp[-2].node),(yyvsp[0].node),NULL);}
+#line 1891 "y.tab.c"
     break;
 
   case 67:
-#line 317 "task1.y"
+#line 335 "task1.y"
     {CheckType((yyvsp[-2].node),(yyvsp[0].node));
-                                (yyval.node) = createTree(0,NULL,neq_node,bool_type,NULL,(yyvsp[-2].node),(yyvsp[0].node),NULL);}
-#line 1888 "y.tab.c"
+                           (yyval.node) = createTree(0,NULL,neq_node,bool_type,NULL,(yyvsp[-2].node),(yyvsp[0].node),NULL);}
+#line 1898 "y.tab.c"
     break;
 
   case 68:
-#line 320 "task1.y"
+#line 338 "task1.y"
     {CheckType((yyvsp[-2].node),(yyvsp[0].node));
-                                (yyval.node) = createTree(0,NULL,lte_node,bool_type,NULL,(yyvsp[-2].node),(yyvsp[0].node),NULL);}
-#line 1895 "y.tab.c"
+                           (yyval.node) = createTree(0,NULL,lte_node,bool_type,NULL,(yyvsp[-2].node),(yyvsp[0].node),NULL);}
+#line 1905 "y.tab.c"
     break;
 
   case 69:
-#line 323 "task1.y"
+#line 341 "task1.y"
     {CheckType((yyvsp[-2].node),(yyvsp[0].node));
-                                (yyval.node) = createTree(0,NULL,gte_node,bool_type,NULL,(yyvsp[-2].node),(yyvsp[0].node),NULL);}
-#line 1902 "y.tab.c"
+                           (yyval.node) = createTree(0,NULL,gte_node,bool_type,NULL,(yyvsp[-2].node),(yyvsp[0].node),NULL);}
+#line 1912 "y.tab.c"
     break;
 
   case 70:
-#line 326 "task1.y"
+#line 344 "task1.y"
     {(yyval.node) = (yyvsp[-1].node);}
-#line 1908 "y.tab.c"
+#line 1918 "y.tab.c"
     break;
 
   case 71:
-#line 327 "task1.y"
+#line 345 "task1.y"
     {checkID((yyvsp[0].node)->varname); (yyval.node) = (yyvsp[0].node);}
-#line 1914 "y.tab.c"
-    break;
-
-  case 72:
-#line 328 "task1.y"
-    {checkID((yyvsp[-3].node)->varname); 
-
-    CheckIfArray((yyvsp[-3].node)->varname);
-    CheckIntType((yyvsp[-1].node));
-    (yyval.node) = createTree(                                       0,NULL,array_node,(yyvsp[-3].node)->ttype,NULL,(yyvsp[-3].node),(yyvsp[-1].node),NULL);}
 #line 1924 "y.tab.c"
     break;
 
+  case 72:
+#line 346 "task1.y"
+    {
+									checkID((yyvsp[-3].node)->varname); 
+    								CheckIfArray((yyvsp[-3].node)->varname);
+    								CheckIntType((yyvsp[-1].node));
+    								(yyval.node) = createTree(0,NULL,array_node,(yyvsp[-3].node)->ttype,NULL,(yyvsp[-3].node),(yyvsp[-1].node),NULL);
+								}
+#line 1935 "y.tab.c"
+    break;
+
   case 73:
-#line 334 "task1.y"
+#line 353 "task1.y"
     {(yyval.node) = (yyvsp[0].node);}
-#line 1930 "y.tab.c"
+#line 1941 "y.tab.c"
     break;
 
   case 74:
-#line 335 "task1.y"
+#line 354 "task1.y"
     {(yyval.node) = (yyvsp[0].node);}
-#line 1936 "y.tab.c"
+#line 1947 "y.tab.c"
     break;
 
   case 75:
-#line 336 "task1.y"
+#line 355 "task1.y"
     {
-    							checkID((yyvsp[-2].node)->varname);
-    							CheckIfFunction((yyvsp[-2].node)->varname);
-    							struct Gsymbol* idx = Lookup2((yyvsp[-2].node)->varname);
+    								checkID((yyvsp[-2].node)->varname);
+    								CheckIfFunction((yyvsp[-2].node)->varname);
+    								struct Gsymbol* idx = Lookup2((yyvsp[-2].node)->varname);
 
-    							(yyval.node) = createTree(0,NULL,function_node,idx->type,idx->name,(yyvsp[-2].node),NULL,NULL);
+    								(yyval.node) = createTree(0,NULL,function_node,idx->type,idx->name,(yyvsp[-2].node),NULL,NULL);
 
-                                CheckInformalParamList((yyval.node),NULL);
+                           CheckInformalParamList((yyval.node),NULL);
                                     
-    							(yyval.node) -> Arglist = NULL;	
-    						}
-#line 1952 "y.tab.c"
+    								(yyval.node) -> Arglist = NULL;	
+    							}
+#line 1963 "y.tab.c"
     break;
 
   case 76:
-#line 348 "task1.y"
+#line 368 "task1.y"
     {
-    							checkID((yyvsp[-3].node)->varname);
-    							CheckIfFunction((yyvsp[-3].node)->varname);
-    							struct Gsymbol* idx = Lookup2((yyvsp[-3].node)->varname);
+    								checkID((yyvsp[-3].node)->varname);
+    								CheckIfFunction((yyvsp[-3].node)->varname);
+    								struct Gsymbol* idx = Lookup2((yyvsp[-3].node)->varname);
 
-                                (yyval.node) = createTree(0,NULL,function_node,idx->type,idx->name,(yyvsp[-3].node),(yyvsp[-1].node),NULL);
+                           (yyval.node) = createTree(0,NULL,function_node,idx->type,idx->name,(yyvsp[-3].node),(yyvsp[-1].node),NULL);
 
-                                CheckInformalParamList((yyval.node),(yyvsp[-1].node));
-                                
+                           CheckInformalParamList((yyval.node),(yyvsp[-1].node));
 
-    							(yyval.node) -> Arglist = (yyvsp[-1].node);
-    						}
-#line 1969 "y.tab.c"
+    								(yyval.node) -> Arglist = (yyvsp[-1].node);
+    							}
+#line 1979 "y.tab.c"
     break;
 
   case 77:
-#line 363 "task1.y"
+#line 382 "task1.y"
     {
-						(yyval.node) = createTree(0,NULL,arg_node,-1,NULL,(yyvsp[0].node),(yyvsp[-2].node),NULL);
-					}
-#line 1977 "y.tab.c"
+									(yyval.node) = createTree(0,NULL,arg_node,-1,NULL,(yyvsp[0].node),(yyvsp[-2].node),NULL);
+								}
+#line 1987 "y.tab.c"
     break;
 
   case 78:
-#line 367 "task1.y"
+#line 386 "task1.y"
     {
-						(yyval.node) = createTree(0,NULL,arg_node,-1,NULL,(yyvsp[0].node),NULL,NULL);
-					}
-#line 1985 "y.tab.c"
+									(yyval.node) = createTree(0,NULL,arg_node,-1,NULL,(yyvsp[0].node),NULL,NULL);
+								}
+#line 1995 "y.tab.c"
     break;
 
 
-#line 1989 "y.tab.c"
+#line 1999 "y.tab.c"
 
       default: break;
     }
@@ -2217,7 +2227,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 372 "task1.y"
+#line 391 "task1.y"
 
 
 void yyerror(char *S)
@@ -2226,17 +2236,18 @@ void yyerror(char *S)
 }
 
 int main(int argc,char* argv[])
-{
-	line = 1;
-    variable_type = -1; 
-    p_variable_type = -1;
-    bind = 4096;
+{	
+					
+ 	line = 1;
+   variable_type = -1; 
+   p_variable_type = -1;
+   bind = 4096;
 
-    fp = fopen("/home/shrey/xsm_expl/progs/stage5/input.xsm","w");
-    fp_read = fopen(argv[1],"r");
-    yyin = fp_read;
+   fp = fopen("/home/shrey/xsm_expl/progs/stage5/input.xsm","w");
+   fp_read = fopen(argv[1],"r");
+   yyin = fp_read;
+	
+   yyparse();
 
-    yyparse();
-
-    return 0;
+   return 0;
 }
