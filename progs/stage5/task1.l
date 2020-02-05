@@ -35,7 +35,7 @@ asgg [a-z][ \t]*[=]
 "endwhile"  {return ENDWHILE;}
 "break" {yylval.node = createTree(0,NULL,break_node,-1,NULL,NULL,NULL,NULL); return BREAK;}
 "continue" {yylval.node = createTree(0,NULL,continue_node,-1,NULL,NULL,NULL,NULL); return CONTINUE;}
-[a-zA-Z][a-zA-Z0-9]*   { 
+[_a-zA-Z][_a-zA-Z0-9]* { 
                             str = strdup(yytext); yylval.node = createTree(0,NULL,var_node,-1,str,(tnode*)NULL,(tnode*)NULL,(tnode*)NULL); 
                             if(LocalLookup(str)){yylval.node = createTree(0,NULL,var_node,LocalLookup(str)->type,str,(tnode*)NULL,(tnode*)NULL,(tnode*)NULL);} 
                             else if(ParamLookup(str)){yylval.node = createTree(0,NULL,var_node,ParamLookup(str)->type,str,(tnode*)NULL,(tnode*)NULL,(tnode*)NULL);} 

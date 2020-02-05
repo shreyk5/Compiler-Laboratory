@@ -41,12 +41,16 @@ Program : GDeclBlock FDefBlock MainBlock
 Type : INT     {variable_type = int_type;}
 		|  STR {variable_type = str_type;}
 		;
+
+ParamType : INT     {p_variable_type = int_type;}
+            |  STR  {p_variable_type = str_type;}
+            ;
 //-----------------------------------------------------------------------------
 
 
 //---------------------------GLOBAL DECLARATION--------------------------------
 GDeclBlock : DECL GDeclList ENDDECL	{GenerateHeader();
-                                        PrintSymbolTable();}
+                                    PrintSymbolTable();}
 			| DECL ENDDECL
 			;
 
@@ -61,11 +65,11 @@ GidList : GidList ',' Gid
 		| Gid
 		;
 
-Gid : ID 					{Install($1->varname,variable_type,0,1);}
-	| ID '[' NUM ']'		{Install($1->varname,variable_type,1,$3->val);}
+Gid : ID                    {Install($1->varname,variable_type,0,1);}
+	| ID '[' NUM ']'        {Install($1->varname,variable_type,1,$3->val);}
 	| ID '(' ParamList ')'	{
 								Install($1->varname,variable_type,2,1);
-								InsertParamList($1->varname);
+                                InsertParamList($1->varname);
                                 clearParamList();	
 							}
 
@@ -86,11 +90,11 @@ FDef :  Type ID '(' ParamList ')' '{' LDeclBlock Body'}'
 		{
 			CheckIfFunction($2->varname);
 			CheckReturnType($2->varname,variable_type);
+            CheckReturnVal($8->right,variable_type);
 			CheckParamList($2->varname);
 			InsertLST($2->varname);
-			//PrintLST($2->varname);
-			//PrintParamList($2->varname);
-			ActRecordSetup($2 -> varname);
+			
+            ActRecordSetup($2 -> varname);
 
 			MainCodeGen($8);
 
@@ -107,10 +111,10 @@ FDef :  Type ID '(' ParamList ')' '{' LDeclBlock Body'}'
         { 
             CheckIfFunction($2->varname);
             CheckReturnType($2->varname,variable_type);
+            CheckReturnVal($7->right,variable_type);
             CheckParamList($2->varname);
             InsertLST($2->varname);
-            //PrintLST($2->varname);
-            //PrintParamList($2->varname);
+            
             ActRecordSetup($2 -> varname);
 
             MainCodeGen($7);
@@ -129,9 +133,9 @@ ParamList : ParamList ',' Param
 			| Param
 			;
 
-Param : Type ID     {
-						InsertParam($2->varname,variable_type);
-					}
+Param : ParamType ID    {
+						  InsertParam($2->varname,p_variable_type);
+					    }
 		;
 
 LDeclBlock : DECL LDeclList ENDDECL
@@ -155,6 +159,7 @@ IDList : IDList ',' ID      {InsertLocalSymbol($3->varname,variable_type);}
 
 MainBlock : INT MAIN '(' ')' '{' LDeclBlock Body '}'	{
             
+            CheckReturnVal($7->right,int_type);
             fprintf(fp,"MAIN: ");   //label for the function
             fprintf(fp,"PUSH BP\n");
             fprintf(fp,"MOV BP,SP\n");
@@ -257,7 +262,7 @@ outputStmt : WRITE '(' expr ')' ';' {
 
 if($3->ttype != int_type && $3->ttype != str_type)
 {
-    yyerror("Incorrect type in write\n");
+    printf("Incorrect type in write\n");
 }
 $$ = createTree(0,NULL,write_node,-1,NULL,$3,NULL,NULL);
 
@@ -374,11 +379,13 @@ void yyerror(char *S)
 int main(int argc,char* argv[])
 {
 	line = 1;
-    fp = fopen("/home/shrey/xsm_expl/progs/stage5/input.xsm","w");
+    variable_type = -1; 
+    p_variable_type = -1;
+    bind = 4096;
 
+    fp = fopen("/home/shrey/xsm_expl/progs/stage5/input.xsm","w");
     fp_read = fopen(argv[1],"r");
     yyin = fp_read;
-    bind = 4096;
 
     yyparse();
 

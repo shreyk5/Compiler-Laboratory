@@ -82,7 +82,7 @@ struct Gsymbol* start;
 struct Gsymbol* end;
 int bind;
 int bind_param;
-int variable_type;
+int variable_type, p_variable_type;
 
 struct Lsymbol* LocalLookup(char* variable_name);
 struct Paramstruct* ParamLookup(char* variable_name);

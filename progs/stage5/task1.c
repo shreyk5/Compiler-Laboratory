@@ -408,11 +408,20 @@ void CheckReturnType(char* name,int type)
 		exit(1);
 	}
 
-	if(idx->type != type)
+    if(idx->type != type)
 	{
 		printf("Return type of declared & defined function %s does not match",name);
 		exit(1);
 	}
+}
+
+void CheckReturnVal(struct tnode* t,int type)
+{
+    if(t->ttype != type)
+    {
+        printf("Value returned does not match with return type\n");
+        exit(1);
+    }
 }
 
 void CheckIfFunction(char* name)
@@ -542,8 +551,6 @@ void PopLocalVariables(char* name)
 
 int BasicCodeGen(struct tnode* t)
 {
-    if(!t)
-        return;
     if(t->type == var_node)
     {
         int i = get_reg();
@@ -1296,8 +1303,9 @@ void GenerateHeader()
     fprintf(fp,"0\n");
     fprintf(fp,"0\n");
     fprintf(fp,"0\n");
-    fprintf(fp,"BRKP\n");
-    fprintf(fp,"MOV SP,%d\n",bind);
+    fprintf(fp,"MOV BP,%d\n",bind);
+    fprintf(fp,"MOV SP,%d\n",bind-1);
+    fprintf(fp,"ADD SP,1\n");   //for return value of main
     fprintf(fp,"CALL MAIN\n");
     fprintf(fp,"INT 10\n");    
 }

@@ -1,7 +1,7 @@
 decl
-	int a,b;
 	int fact(int k),print();
 	int g(int c);
+	str string1;
 enddecl
 
 int fact(int n)
@@ -25,7 +25,7 @@ int print()
 	decl
 	enddecl
 	begin
-		write(" ");
+		write("print function");
 		return 1;
 	end
 }
@@ -43,14 +43,14 @@ int g(int a)
 int main()
 {
 	decl
-		int abc;
+		int abc_1;
 	enddecl
 	begin
 	    write("hi shrey");
-	    read(abc);
-	    abc = fact(g(abc));
-	    write(abc);
-	    abc = print();
+	    read(abc_1);
+	    abc_1 = fact(g(abc_1));
+	    write(abc_1);
+	    abc_1 = print();
 	    return 1;
 	end
 }
