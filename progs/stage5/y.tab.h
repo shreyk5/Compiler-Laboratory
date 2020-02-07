@@ -131,7 +131,7 @@ union YYSTYPE
 {
 #line 15 "task1.y"
 
-    struct tnode* node;
+	struct tnode* node;
 
 #line 137 "y.tab.h"
 

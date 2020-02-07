@@ -262,12 +262,31 @@ void PLocal()
     }
 }
 
+//checks if same para variable name is already present
+void CheckDuplicateParam(char* name)
+{
+    struct Paramstruct* curr = head;
+
+    while(curr != NULL)
+    {
+        if(strcmp(curr -> name,name) == 0)
+        {
+            printf("Error %s variable name already present\n",name);
+            exit(1);
+        }
+        curr = curr -> next;
+    }
+}
+
 void InsertParam(char* name,int type)
 {
+
+    CheckDuplicateParam(name);
+
 	struct Paramstruct* new_node = (struct Paramstruct*)malloc(sizeof(struct Paramstruct));
 	new_node -> name = name;
 	new_node -> type = variable_type;
-    	new_node -> binding = bind_param--;
+    new_node -> binding = bind_param--;
 	new_node -> next = NULL;
 
 	if(head == NULL)
@@ -288,7 +307,7 @@ void clearParamList()
 	head = NULL;
 	tail = NULL;
 
-    	bind_param = -3;
+    bind_param = -3;
 }
 
 void clearLSTList()
@@ -322,6 +341,7 @@ void CheckDuplicateLocalSymbol(char* name)
 	}
 }
 
+
 //insert local symbol into current local symbol list
 void InsertLocalSymbol(char* name,int type)
 {
@@ -332,6 +352,7 @@ void InsertLocalSymbol(char* name,int type)
 	new_node -> next = NULL;
 
 	CheckDuplicateLocalSymbol(name);
+    CheckDuplicateParam(name);
 
 	if(head2 == NULL)
 	{

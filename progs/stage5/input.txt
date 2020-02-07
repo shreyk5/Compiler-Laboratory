@@ -2,6 +2,7 @@ decl
 	int fact(int k),print();
 	int g(int c);
 	str string1;
+	int a[5];
 enddecl
 
 int fact(int n)
@@ -33,6 +34,7 @@ int print()
 int g(int a)
 {
 	decl
+		int b;
 	enddecl
 	begin
 		write("g here");
@@ -50,7 +52,7 @@ int main()
 	    read(abc_1);
 	    abc_1 = fact(g(abc_1));
 	    write(abc_1);
-	    abc_1 = print();
+	    print() = a;
 	    return 1;
 	end
 }
