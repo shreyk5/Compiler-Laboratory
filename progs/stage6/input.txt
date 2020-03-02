@@ -1,0 +1,10 @@
+type
+  linkedlist{
+    int data;
+    linkedlist next;
+  }
+  marklist{
+    str name;
+    linkedlist marks;
+  }
+endtype
