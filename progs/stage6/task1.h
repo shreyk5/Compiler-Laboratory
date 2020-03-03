@@ -43,6 +43,7 @@
 #define init_node 43
 #define alloc_node 44
 #define read_field_node 45
+#define null_node 46
 
 int line;
 
@@ -153,7 +154,7 @@ void PrintSymbolTable();
 void PrintLST(char* name);
 void PrintParamList(char* name);
 void CheckReturnType(char* name,struct Typetable* type);
-void CheckReturnVal(struct tnode* t,int type);
+void CheckReturnVal(struct tnode* t,struct Typetable* type);
 void CheckIfFunction(char* name);
 void CheckParamList(char *name);
 void CheckInformalParamList(struct tnode* t);

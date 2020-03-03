@@ -20,6 +20,7 @@ char [a-z]*
 "endtype"   {return ENDTYPE;}
 "alloc" {return ALLOC;}
 "free"  {return FREE;}
+"null"  {return SENTINEL;}
 "initialize"    {yylval.node = createTree(0,NULL,init_node,TLookup("void"),NULL,NULL,NULL,NULL); return INITIALIZE;}
 "int"	{return INT;}
 "str" 	{return STR;}
@@ -56,7 +57,7 @@ char [a-z]*
 	yylval.node = createTree(-1,str,str_node,TLookup("string"),NULL,(tnode*)NULL,(tnode*)NULL,(tnode*)NULL); 
 	return STRING;
 }
-
+"."     {return *yytext;}
 "+"     {return PLUS;}
 "-"     {return MINUS;}
 "*"     {return MUL;}

@@ -89,7 +89,8 @@ extern int yydebug;
     ENDTYPE = 295,
     ALLOC = 296,
     FREE = 297,
-    INITIALIZE = 298
+    INITIALIZE = 298,
+    SENTINEL = 299
   };
 #endif
 /* Tokens.  */
@@ -134,16 +135,17 @@ extern int yydebug;
 #define ALLOC 296
 #define FREE 297
 #define INITIALIZE 298
+#define SENTINEL 299
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 22 "task1.y"
+#line 23 "task1.y"
 
 	struct tnode* node;
 
-#line 147 "y.tab.h"
+#line 149 "y.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

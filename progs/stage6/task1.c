@@ -90,6 +90,7 @@ void CheckType(struct tnode* t1,struct tnode* t2)
     if(!(t1->ttype == TLookup("int") && t2->ttype == TLookup("int")))
     {
         printf("Error:Type mismatch of operands");
+        yyerror();
         exit(1);
     }
 }
@@ -122,9 +123,9 @@ void CheckIfArray(char* varname)
 
 void AssignCheckType(struct tnode* t1,struct tnode* t2)
 {
-	if(t1->ttype != t2->ttype)
+	if(t1->ttype != t2->ttype && (t1->ttype!=TLookup("dummy") && t2->ttype!=TLookup("dummy")))
     {
-        printf("Error:Type mismatch of operands\n");
+        printf("hiError:Type mismatch of operands\n");
         exit(1);
     }
 }
@@ -394,7 +395,7 @@ void PrintSymbolTable()
 	printf("Name            Type      _Type     Size     Binding\n");
 	while(curr!=NULL)
 	{
-		printf("%s                %d         %d        %d         %d\n",curr->name,curr->type,curr->_type,curr->size,curr->binding);
+		printf("%s               %s         %d        %d         %d\n",curr->name,curr->type->name,curr->_type,curr->size,curr->binding);
 		curr = curr->next;
 	}
 }
@@ -444,14 +445,14 @@ void CheckReturnType(char* name,struct Typetable* t)
 		exit(1);
 	}
 
-    if(idx->type != t->name)
+    if(idx->type != t)
 	{
 		printf("Return type of declared & defined function %s does not match",name);
 		exit(1);
 	}
 }
 
-void CheckReturnVal(struct tnode* t,int type)
+void CheckReturnVal(struct tnode* t,struct Typetable* type)
 {
     if(t->ttype != type)
     {
@@ -690,6 +691,12 @@ void TInstall(char *name,int size,struct Fieldlist* fields)
         curr =  curr -> next;
     }
 
+    if(cnt>8)
+    {
+        printf("Error : %s type has more than 8 fields\n",name);
+        exit(1);
+    }
+
     Fhead = Ftail = NULL;   //reset the fields list   
 }
 
@@ -760,6 +767,10 @@ void PopLocalVariables(char* name)
 
 int BasicCodeGen(struct tnode* t)
 {
+    if(!t)
+    {
+        return -1;
+    }
     if(t->type == var_node)
     {
         int i = get_reg();
@@ -961,6 +972,14 @@ int BasicCodeGen(struct tnode* t)
         fprintf(fp,"POP R%d\n",j);
         free_reg(); //register j gets freed
     
+        return i;
+    }
+
+    else if(t->type == null_node)
+    {
+        int i = get_reg();
+        fprintf(fp,"MOV R%d,-1\n", i);
+
         return i;
     }
 

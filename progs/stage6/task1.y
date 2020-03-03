@@ -8,6 +8,7 @@
 	struct Typetable *Thead = NULL, *Ttail = NULL;	//points to the head and tail of Typetable list
 	struct Typetable *DeclType = NULL;	//points to the Typetable entry for the current type
 	struct Typetable *PDeclType = NULL; //points to the Typetable entry of current parameter type
+	struct Typetable *FuncType = NULL;	//return type of a function
 
 	char* TypeInfo = NULL;	//for keeping types which are not yet declared(for eg same type or undeclared)
 
@@ -24,7 +25,7 @@
 };
 
 
-%token START END DECL ENDDECL MAIN INT STR NUM ASSIGN READ WRITE ID PLUS MINUS MUL DIV MOD IF THEN ELSE ENDIF LT GT EQ NEQ GTE LTE DO WHILE ENDWHILE BREAK CONTINUE REPEAT UNTIL STRING RETURN TYPE ENDTYPE ALLOC FREE INITIALIZE
+%token START END DECL ENDDECL MAIN INT STR NUM ASSIGN READ WRITE ID PLUS MINUS MUL DIV MOD IF THEN ELSE ENDIF LT GT EQ NEQ GTE LTE DO WHILE ENDWHILE BREAK CONTINUE REPEAT UNTIL STRING RETURN TYPE ENDTYPE ALLOC FREE INITIALIZE SENTINEL
 
 %type<node> Program SLIST stmt asgStmt inputStmt outputStmt IfStmt RepeatStmt expr START END NUM ASSIGN READ WRITE ID PLUS MINUS MUL DIV WhileStmt DoWhileStmt BREAK CONTINUE STRING ArgList FDef Body RetStmt GDeclBlock FDefBlock MainBlock TypeDefBlock
 DECL ENDDECL FIELD INITIALIZE
@@ -36,9 +37,13 @@ DECL ENDDECL FIELD INITIALIZE
 %%
 
 //---------------------------------PROGRAM-------------------------------------
-Program : TypeDefBlock GDeclBlock FDefBlock MainBlock
-		| GDeclBlock MainBlock
-		| MainBlock
+Program :	TypeDefBlock GDeclBlock FDefBlock MainBlock
+		|	GDeclBlock FDefBlock MainBlock
+		|	TypeDefBlock FDefBlock MainBlock
+		|	TypeDefBlock GDeclBlock MainBlock
+		|	TypeDefBlock MainBlock
+		|	GDeclBlock MainBlock
+		|	MainBlock	
 		;
 //-----------------------------------------------------------------------------
 
@@ -142,15 +147,28 @@ Gid : ID                   	{Install($1->varname,DeclType,0,1);}
 //-----------------------------------------------------------------------------
 
 //----------------------------FUNCTION DEFINITION------------------------------
+
+ReturnType :	INT	{FuncType = TLookup("int");}
+		|	STR		{FuncType = TLookup("string");}
+		|	ID		{
+						FuncType = TLookup($1->varname);
+						if(!FuncType)
+						{
+							printf("%s type not declared\n",$1->varname);
+							exit(1);
+						}
+					}						
+		;
+
 FDefBlock : FDefBlock FDef
 			| FDef
 			;
 
-FDef :  Type ID '(' ParamList ')' '{' LDeclBlock Body'}'	
+FDef :  ReturnType ID '(' ParamList ')' '{' LDeclBlock Body'}'	
 		{
 			CheckIfFunction($2->varname);
-			CheckReturnType($2->varname,DeclType);
-			CheckReturnVal($8->right,DeclType);
+			CheckReturnType($2->varname,FuncType);
+			CheckReturnVal($8->right,$2->ttype);
 			CheckParamList($2->varname);
 			InsertLST($2->varname);
 
@@ -167,10 +185,10 @@ FDef :  Type ID '(' ParamList ')' '{' LDeclBlock Body'}'
 			clearLSTList();	
 		}
 
-	|   Type ID '(' ')' '{' LDeclBlock Body'}'
+	|   ReturnType ID '(' ')' '{' LDeclBlock Body'}'
 		{ 
 			CheckIfFunction($2->varname);
-			CheckReturnType($2->varname,DeclType);
+			CheckReturnType($2->varname,FuncType);
 			CheckReturnVal($7->right,DeclType);
 			CheckParamList($2->varname);
 			InsertLST($2->varname);
@@ -200,6 +218,7 @@ Param : ParamType ID    {
 
 LDeclBlock : DECL LDeclList ENDDECL
 		| DECL ENDDECL
+		|
 		;
 
 LDeclList : LDeclList  LDecl
@@ -219,7 +238,7 @@ IDList : IDList ',' ID      	{InsertLocalSymbol($3->varname,DeclType);}
 
 MainBlock : INT MAIN '(' ')' '{' LDeclBlock Body '}'	{
 
-			CheckReturnVal($7->right,int_type);
+			CheckReturnVal($7->right,TLookup("int"));
 			fprintf(fp,"MAIN: ");   //label for the function
 			fprintf(fp,"PUSH BP\n");
 			fprintf(fp,"MOV BP,SP\n");
@@ -338,8 +357,15 @@ inputStmt :	READ '(' ID ')' ';'
 								{
 									checkID($3->varname);
 									MatchType($3,var_node);
-
-									$$ = createTree(0,NULL,read_node,TLookup("void"),NULL,$3,NULL,NULL);
+									if($3->ttype == TLookup("int") || $3->ttype == TLookup("string"))
+									{
+										$$ = createTree(0,NULL,read_node,TLookup("void"),NULL,$3,NULL,NULL);
+									}
+									else
+									{
+										yyerror("Error : cannot be read\n");
+										exit(1);
+									}
 								}
 
 		|	READ '(' ID '[' expr ']'  ')' ';'     
@@ -368,6 +394,7 @@ outputStmt : WRITE '(' expr ')' ';'
 							if($3->ttype != TLookup("int") && $3->ttype != TLookup("string"))
 							{
 								printf("Incorrect type in write\n");
+								exit(1);
 							}
 							$$ = createTree(0,NULL,write_node,TLookup("void"),NULL,$3,NULL,NULL);
 						};
@@ -474,12 +501,12 @@ expr : expr PLUS expr   {
 						}
 
 	|  expr EQ expr     {
-							CheckType($1,$3);
+							//CheckType($1,$3);
 							$$ = createTree(0,NULL,eq_node,TLookup("bool"),NULL,$1,$3,NULL);
 						}
 
 	|  expr NEQ expr    {
-							CheckType($1,$3);
+							//CheckType($1,$3);
 						   	$$ = createTree(0,NULL,neq_node,TLookup("bool"),NULL,$1,$3,NULL);
 						}
 
@@ -503,7 +530,7 @@ expr : expr PLUS expr   {
 						}
 
 	|	FIELD			{$$ = $1;}
-
+	| 	SENTINEL		{$$ = createTree(0,NULL,null_node,TLookup("dummy"),NULL,NULL,NULL,NULL);}
 	|	NUM             {$$ = $1;}
 	|	STRING          {$$ = $1;}
 	|	ID '(' ')'			{	
@@ -558,7 +585,7 @@ int main(int argc,char* argv[])
    	bind = 4096;
 
    	fp = fopen("/home/shrey/xsm_expl/progs/stage6/input.xsm","w");
-   	fp_read = fopen("input.txt","r");
+   	fp_read = fopen(argv[1],"r");
   	yyin = fp_read;
 
 	InitTypeTable();
