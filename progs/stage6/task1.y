@@ -166,6 +166,7 @@ FDefBlock : FDefBlock FDef
 
 FDef :  ReturnType ID '(' ParamList ')' '{' LDeclBlock Body'}'	
 		{
+			checkID($2->varname);
 			CheckIfFunction($2->varname);
 			CheckReturnType($2->varname,FuncType);
 			CheckReturnVal($8->right,$2->ttype);
@@ -187,6 +188,7 @@ FDef :  ReturnType ID '(' ParamList ')' '{' LDeclBlock Body'}'
 
 	|   ReturnType ID '(' ')' '{' LDeclBlock Body'}'
 		{ 
+			checkID($2->varname);
 			CheckIfFunction($2->varname);
 			CheckReturnType($2->varname,FuncType);
 			CheckReturnVal($7->right,DeclType);
@@ -277,7 +279,7 @@ Body :  START SLIST RetStmt END
 
 	|   START RetStmt END
 		{
-			$$ = createTree(0,NULL,connector_node,TLookup("void"),NULL,$2,NULL,NULL);
+			$$ = createTree(0,NULL,connector_node,TLookup("void"),NULL,NULL,$2,NULL);
 		}
 	;
 
@@ -433,6 +435,7 @@ RepeatStmt : REPEAT '{' SLIST '}' UNTIL '(' expr ')' ';'
 
 //----------------------------------------------FIELDS--------------------------------------------------------
 FIELD	: ID '.' ID		{
+							checkID($1->varname);
 							struct Fieldlist* tmp = FLookup($1->ttype,$3->varname);
 							if(!tmp)
 							{
@@ -501,12 +504,12 @@ expr : expr PLUS expr   {
 						}
 
 	|  expr EQ expr     {
-							//CheckType($1,$3);
+							CheckCompType($1,$3);
 							$$ = createTree(0,NULL,eq_node,TLookup("bool"),NULL,$1,$3,NULL);
 						}
 
 	|  expr NEQ expr    {
-							//CheckType($1,$3);
+							CheckCompType($1,$3);
 						   	$$ = createTree(0,NULL,neq_node,TLookup("bool"),NULL,$1,$3,NULL);
 						}
 
@@ -561,11 +564,11 @@ expr : expr PLUS expr   {
 
 ArgList : ArgList ',' expr	
 								{
-									$$ = createTree(0,NULL,arg_node,-1,NULL,$3,$1,NULL);
+									$$ = createTree(0,NULL,arg_node,TLookup("void"),NULL,$3,$1,NULL);
 								}
 
 		| expr    				{
-									$$ = createTree(0,NULL,arg_node,-1,NULL,$1,NULL,NULL);
+									$$ = createTree(0,NULL,arg_node,TLookup("void"),NULL,$1,NULL,NULL);
 								}
 		;
 

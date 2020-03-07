@@ -131,8 +131,10 @@ struct Paramstruct* ParamLookup(char* variable_name);
 struct Gsymbol* Lookup(char* variable_name);
 struct Gsymbol* Lookup2(char* variable_name);
 
+void yyerror(char *S);
 void push(struct stack_node* node);
 void pop();
+void CheckCompType(struct tnode* t1,struct tnode* t2);
 void CheckType(struct tnode* t1,struct tnode* t2);
 void MatchType(struct tnode* t,int type);
 void CheckIfArray(char* varname);

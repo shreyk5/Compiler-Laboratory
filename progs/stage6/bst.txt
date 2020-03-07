@@ -4,6 +4,7 @@ type
   bst left;
   bst right;
   }
+  
 endtype
 
 decl
@@ -92,7 +93,6 @@ int main()
   begin
     initialize();
     Root = null;
-
     read(val);
 
     while(val!=0) do

@@ -85,12 +85,33 @@ void pop()
     free(tmp);
 }
 
+void CheckCompType(struct tnode* t1,struct tnode* t2)
+{
+    if(t1->ttype == TLookup("int") && t2->ttype == TLookup("int"))
+    {
+
+    }
+    else if((t1->ttype != TLookup("int") && t1->ttype != TLookup("string")) && (t2->ttype == TLookup("dummy")))
+    {
+
+    }
+    else if((t2->ttype != TLookup("int") && t2->ttype != TLookup("string")) && (t1->ttype == TLookup("dummy")))
+    {
+
+    }
+    else
+    {
+        yyerror("Error : Incorrect types being compared\n");
+        exit(1);
+    }
+    
+}
+
 void CheckType(struct tnode* t1,struct tnode* t2)
 {
     if(!(t1->ttype == TLookup("int") && t2->ttype == TLookup("int")))
     {
-        printf("Error:Type mismatch of operands");
-        yyerror();
+        yyerror("Error:Type mismatch of operands");
         exit(1);
     }
 }
@@ -420,7 +441,7 @@ void PrintParamList(char* name)
     printf("Function %s: Parameters\n",name);    
     while(curr)
     {
-     	printf("%s    %d\n",curr->name,curr->type);
+     	printf("%s    %s\n",curr->name,curr->type->name);
      	curr = curr -> next;
     }
 	// struct Gsymbol* idx = Lookup2(name);
@@ -702,9 +723,9 @@ void TInstall(char *name,int size,struct Fieldlist* fields)
 
 void InitTypeTable()
 {
-    TInstall("int",0,NULL);
-    TInstall("string",0,NULL);
-    TInstall("bool",0,NULL);
+    TInstall("int",1,NULL);
+    TInstall("string",1,NULL);
+    TInstall("bool",1,NULL);
     TInstall("void",0,NULL);
     TInstall("dummy",0,NULL);
 }
