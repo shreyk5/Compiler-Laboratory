@@ -1,0 +1,24 @@
+type
+list
+{
+  int a;
+  list next;
+}
+endtype
+
+decl
+  list L;
+enddecl
+
+int main()
+{
+  decl
+    
+  enddecl
+  begin
+    initialize();
+    read(L.a);
+    write(L.a);
+    return 1;
+  end
+}
