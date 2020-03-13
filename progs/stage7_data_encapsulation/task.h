@@ -44,6 +44,7 @@
 #define alloc_node 44
 #define read_field_node 45
 #define null_node 46
+#define field_function_node 47
 
 int line;
 
@@ -87,7 +88,8 @@ struct Memberfunclist {
 typedef struct Paramstruct{
 
 	char* name;
-	struct Typetable* type;	//pointer to Typetable entry 
+	struct Typetable* type;	//pointer to Typetable entry
+	struct Classtable* ctype;	//pointer to class table entry if it is self 
 	int binding;
 	struct Paramstruct* next;
 
@@ -113,7 +115,7 @@ typedef struct Gsymbol {
 
 	char *name;	//name of the variable
 	struct Typetable *type;	//pointer to the Typetable if it is not a class variable
-	struct Classtable *CType;	//pointer to class table entry if it is a class variable
+	struct Classtable *ctype;	//pointer to class table entry if it is a class variable
 	int _type;	//0 for simple variable,1 for array, 2 for function
 	int size;	
 	int binding;	//static memory address corresponding to the variable
@@ -133,6 +135,7 @@ typedef struct tnode {
 	char* str_val; //string for STRING nodes
 	int type;	//type of node
 	struct Typetable* ttype;  // int type or string or bool type or any other user defined data type
+	struct Classtable *ctype;
 	char* varname;	//name of a variable for ID nodes  
 	struct tnode* Arglist;
 	struct tnode *left,*right,*mid;	//left,right and mid branches   
@@ -147,7 +150,7 @@ typedef struct stack_node{
 stack_node* top;
 
 /*Create a node tnode*/
-struct tnode* createTree(int val, char* str_val, int type, struct Typetable* ttype, char* c, struct tnode *l, struct tnode *r,struct tnode* mid);
+struct tnode* createTree(int val, char* str_val, int type, struct Typetable* ttype, struct Classtable *ctype,char* c, struct tnode *l, struct tnode *r,struct tnode* mid);
 struct Lsymbol* LocalLookup(char* variable_name);
 struct Paramstruct* ParamLookup(char* variable_name);
 struct Gsymbol* GLookup(char* variable_name);
@@ -180,7 +183,7 @@ void CheckReturnType(char* name,struct Typetable* type);
 void CheckReturnVal(struct tnode* t,struct Typetable* type);
 void CheckIfFunction(char* name);
 void CheckParamList(char *name);
-void CheckInformalParamList(struct tnode* t);
+void CheckInformalParamList(struct Paramstruct *paramlist,struct tnode* t);
 struct Fieldlist* FieldNameLookup(char* name);
 struct Fieldlist* FLookup(struct Typetable *type, char* name);
 void FieldInstall(struct Typetable *type, char* name);
@@ -210,6 +213,7 @@ void ReturnCodeGen(struct tnode* t);
 void InitializeCodeGen(struct tnode* t);
 int AllocCodeGen(struct tnode* t);
 int FunctionCodeGen(struct tnode* t);
+int FieldFunctionCodeGen(struct tnode* t);
 void FreeCodeGen(struct tnode* t);
 void MainCodeGen(struct tnode* t);
 void GenerateHeader();

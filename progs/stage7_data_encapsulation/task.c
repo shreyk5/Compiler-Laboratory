@@ -1,9 +1,10 @@
-struct tnode* createTree(int val, char* str_val, int type, struct Typetable* ttype, char* c, struct tnode *l, struct tnode *r, struct tnode* mid)
+struct tnode* createTree(int val, char* str_val, int type, struct Typetable* ttype,struct Classtable *ctype, char* c, struct tnode *l, struct tnode *r, struct tnode* mid)
 {
     struct tnode *tmp = (struct tnode*)malloc(sizeof(tnode));
     tmp -> val = val;
     tmp -> str_val = str_val;
     tmp -> type = type;
+    tmp -> ctype = ctype;
     tmp -> ttype = ttype;
     tmp -> left = l;
     tmp -> right = r; 
@@ -178,8 +179,13 @@ void CheckIntType(struct tnode* t)
 
 struct Gsymbol* GLookup(char* variable_name)
 {
-	struct Gsymbol* curr = start;
+    if(!variable_name)
+    {
+        return NULL;
+    }
 
+	struct Gsymbol* curr = start;
+    
 	while(curr!=NULL)
 	{
 		if(strcmp(curr->name,variable_name) == 0)
@@ -194,6 +200,11 @@ struct Gsymbol* GLookup(char* variable_name)
 
 struct Lsymbol* LocalLookup(char* variable_name)
 {
+    if(!variable_name)
+    {
+        return NULL;
+    }
+
     struct Lsymbol* curr = head2;
 
     while(curr != NULL)
@@ -211,6 +222,11 @@ struct Lsymbol* LocalLookup(char* variable_name)
 
 struct Paramstruct* ParamLookup(char* variable_name)
 {
+    if(!variable_name)
+    {
+        return NULL;
+    }
+
     struct Paramstruct* curr = head;
 
     while(curr != NULL)
@@ -225,6 +241,7 @@ struct Paramstruct* ParamLookup(char* variable_name)
 
     return NULL;   
 }
+
 
 
 //checks if a particular ID is valid or not
@@ -245,6 +262,10 @@ void checkID(char* varname)
 
 void GInstall(char* variable_name, struct Typetable* type, struct Classtable* ctype ,int _type, int size)
 {
+    if(!variable_name)
+    {
+        return;
+    }
     //check if already declared
     struct Gsymbol* curr = start;
 	while(curr)
@@ -261,6 +282,7 @@ void GInstall(char* variable_name, struct Typetable* type, struct Classtable* ct
 	struct Gsymbol* new_entry = (struct Gsymbol*)malloc(sizeof(struct Gsymbol));
 	new_entry -> name = variable_name;
 	new_entry -> type = type;
+    new_entry -> ctype = ctype;
 	new_entry -> _type = _type;
 	new_entry -> size = size;
 	new_entry -> ParamList = NULL;
@@ -303,6 +325,10 @@ void PLocal()
 //checks if same para variable name is already present
 void CheckDuplicateParam(char* name)
 {
+    if(!name)
+    {
+        return;
+    }
     struct Paramstruct* curr = head;
 
     while(curr != NULL)
@@ -325,6 +351,7 @@ void InsertParam(char* name,struct Typetable* type)
 	struct Paramstruct* new_node = (struct Paramstruct*)malloc(sizeof(struct Paramstruct));
 	new_node -> name = name;
 	new_node -> type = type;
+    new_node -> ctype = NULL;
     new_node -> binding = bind_param--;
 	new_node -> next = NULL;
 
@@ -339,6 +366,29 @@ void InsertParam(char* name,struct Typetable* type)
 		tail -> next = new_node;
 		tail = new_node;
 	}
+}
+
+void InsertSelfToParam()
+{
+    struct Paramstruct *tmp = (struct Paramstruct*)malloc(sizeof(struct Paramstruct));
+    char *s = (char*)malloc(sizeof("self "));
+    tmp -> name = (char*)malloc(sizeof(s));
+
+    strcpy(tmp->name,"self");
+    tmp -> type = NULL;
+    tmp -> ctype = class;
+    tmp -> binding = 0;
+    tmp -> next = NULL;
+
+    if(head == NULL)
+    {
+        head = tail = tmp;
+    }
+    else
+    {
+        tail -> next = tmp;
+        tail = tmp;
+    }
 }
 
 void clearParamList()
@@ -367,6 +417,10 @@ void InsertParamList(char* name)
 //checks if same local variable name is already present
 void CheckDuplicateLocalSymbol(char* name)
 {
+    if(!name)
+    {
+        return;
+    }
 	struct Lsymbol* curr = head2;
 
 	while(curr != NULL)
@@ -415,10 +469,10 @@ void InsertLST(char *name)
 void PrintSymbolTable()
 {
 	struct Gsymbol* curr = start;
-	printf("Name            Type      _Type     Size     Binding\n");
+	//printf("Name            Type      _Type     Size     Binding\n");
 	while(curr!=NULL)
 	{
-		printf("%s               %s         %d        %d         %d\n",curr->name,curr->type->name,curr->_type,curr->size,curr->binding);
+		//printf("%s               %s         %d        %d         %d\n",curr->name,curr->type->name,curr->_type,curr->size,curr->binding);
 		curr = curr->next;
 	}
 }
@@ -532,7 +586,11 @@ void CheckParamList(char *name) //checks if parameters in declaration and defini
 //check if function is declared in a class,match the return type and parameter list
 void ClassCheckFunction(char *function_name,struct Typetable *return_type)
 {
-    struct Memberfunclist *curr = Mfhead;
+    if(!function_name)
+    {
+        return;
+    }
+    struct Memberfunclist *curr = class -> Vfuncptr;
     while(curr)
     {
         if(!strcmp(function_name,curr->name))
@@ -575,16 +633,16 @@ void ClassCheckFunction(char *function_name,struct Typetable *return_type)
 
     if(declared_list || defined_list)
     {
-        printf("Error:%s declaration and defn do not match\n",function_name);
+        printf("Error:%s Number of param in declaration and defn do not match\n",function_name);
         yyerror("");
         exit(1);
     } 
 }
 
 
-void CheckInformalParamList(struct tnode* t)  //checks if informalparam matches with formal param during a function call
+void CheckInformalParamList(struct Paramstruct* formal_param,struct tnode* t)  //checks if informalparam matches with formal param during a function call
 {
-	struct Paramstruct* curr = GLookup(t->left->varname)->ParamList;
+	struct Paramstruct* curr = formal_param;
 	struct tnode* curr2;
 
     int cnt_formal = 0;
@@ -593,10 +651,10 @@ void CheckInformalParamList(struct tnode* t)  //checks if informalparam matches 
         cnt_formal++;
         curr = curr->next;
     }
-    curr = GLookup(t->left->varname)->ParamList;
+    curr = formal_param;
 
     int cnt_informal = 0;
-    curr2 = t->right; 
+    curr2 = t; 
     while(curr2)
     {
         cnt_informal++;
@@ -613,7 +671,7 @@ void CheckInformalParamList(struct tnode* t)  //checks if informalparam matches 
     cnt_informal--;
     while(curr)
     {
-        curr2 = t->right;
+        curr2 = t;
 
         for(int i=0;i<cnt_informal;i++)
         {
@@ -635,8 +693,12 @@ void CheckInformalParamList(struct tnode* t)  //checks if informalparam matches 
 //check if a field-name is already present in current list of fields
 struct Fieldlist* FieldNameLookup(char* name)
 {
-    struct Fieldlist* curr = Fhead;
+    if(!name)
+    {
+        return NULL;
+    }
 
+    struct Fieldlist* curr = Fhead;
     while(curr)
     {
         if(!strcmp(curr->name,name))
@@ -652,8 +714,12 @@ struct Fieldlist* FieldNameLookup(char* name)
 //checks if a particular field belongs to a type or not(if yes then returns a pointer to the field)
 struct Fieldlist* FLookup(struct Typetable *type, char* name)
 {
-    struct Fieldlist* curr = type -> fields;
+    if(!type || !name)
+    {
+        return NULL;
+    }
 
+    struct Fieldlist* curr = type -> fields;
     while(curr)
     {
         if(!strcmp(curr->name,name))
@@ -718,6 +784,11 @@ void FieldInstall(struct Typetable *type, char* name)
 
 struct Typetable* TLookup(char *name)
 {
+    if(!name)
+    {
+        return NULL;
+    }
+
     struct Typetable* curr = Thead;
 
     while(curr)
@@ -827,8 +898,24 @@ void PrintTypetable()
     }
 }
 
+void PrintClassTable()
+{
+    struct Classtable *curr = Chead;
+    printf("CLASS: ");
+    while(curr)
+    {
+        printf("%s\n",curr->name);
+        curr = curr -> next;
+    }
+}
+
 struct Classtable* CLookup(char *name)
 {
+    if(!name)
+    {
+        return NULL;
+    }
+
     struct Classtable *curr = Chead;
 
     while(curr)
@@ -916,12 +1003,27 @@ void CInstallFinal()
 
     class -> Memberfield = Fhead;
     class -> Vfuncptr = Mfhead;
-
-    Fhead = Ftail = NULL;
-    Mfhead = Mftail = NULL;    
-    class = NULL;
 }
 
+struct Fieldlist* Class_FLookup(struct Classtable *ctype,char *field_name)
+{
+    if(!field_name)
+    {
+        return NULL;
+    }
+
+    struct Fieldlist *tmp = ctype -> Memberfield;
+    while(tmp)
+    {
+        if(!strcmp(tmp->name,field_name))
+        {
+            return tmp;
+        }
+        tmp = tmp -> next;
+    }
+
+    return NULL;
+}
 
 //first checks if field name is already present
 //if not then adds the field to the fieldlist
@@ -929,13 +1031,18 @@ void Class_FieldInstall(char* name,struct Typetable *type, struct Classtable *ct
 {
     if(type == NULL && ctype == NULL)
     {
-        printf("Error : Type of %s is not defined\n",name);
+        printf("Error : Type of is not defined\n");
         yyerror("");
         exit(1);
     }
-
+    
+    if(!name)
+    {
+        return;
+    }
     //check if this name is already present in current list of fields
     struct Fieldlist *curr = Fhead;
+    int cnt = 0;
     while(curr)
     {
         if(!strcmp(curr->name,name))
@@ -944,17 +1051,18 @@ void Class_FieldInstall(char* name,struct Typetable *type, struct Classtable *ct
             yyerror("");
             exit(1);
         }
-        curr = curr->next;
+        curr = curr -> next;
+        cnt++;
     }
 
     struct Fieldlist *tmp = (struct Fieldlist*)malloc(sizeof(struct Fieldlist));
     tmp -> name = (char*)malloc(sizeof(name));
     strcpy(tmp -> name,name);
+    tmp -> fieldIndex = cnt;
     tmp -> type = type;
     tmp -> ctype = ctype;
     tmp -> typename = NULL;
     tmp -> next = NULL;
-    //field index will be set later when the list is made fully
 
     if(Fhead == NULL)
     {
@@ -964,12 +1072,19 @@ void Class_FieldInstall(char* name,struct Typetable *type, struct Classtable *ct
     {
         Ftail -> next = tmp;
         Ftail = tmp;
+        Ftail -> next = NULL;
     }
 }
 
 
 void Class_MethodInstall(char *function_name,struct Typetable *type,struct Paramstruct* plist)
 {
+    
+    if(!function_name)
+    {
+        return;
+    }
+    
     //check if this function name already exists in current list of methods
     struct Memberfunclist* curr = Mfhead;
     while(curr)
@@ -1000,10 +1115,36 @@ void Class_MethodInstall(char *function_name,struct Typetable *type,struct Param
         Mftail -> next = tmp;
         Mftail = tmp;
     }
+
+}
+
+struct Memberfunclist* MLookup(struct Classtable *ctype,char *function_name)
+{
+    if(ctype == NULL || !function_name)
+    {
+        return NULL;
+    }
+
+    struct Memberfunclist* tmp = ctype -> Vfuncptr;
+    while(tmp)
+    {
+        if(!strcmp(tmp->name,function_name))
+        {
+            return tmp;
+        }
+        tmp = tmp -> next;
+    }
+
+    return NULL;
 }
 
 void ClassFunctionSetup(char *function_name)
 {
+    if(!function_name)
+    {
+        return;
+    }
+
     struct Memberfunclist *curr = Mfhead;
     while(curr)
     {
@@ -1142,7 +1283,8 @@ int BasicCodeGen(struct tnode* t)
 
         else
         {
-        	printf("Error : %s Variable not declared\n",t->varname);
+        	printf("hi1Error : %s Variable not declared\n",t->varname);
+            yyerror("");
         	exit(1);
         }
         return i;
@@ -1198,28 +1340,54 @@ int BasicCodeGen(struct tnode* t)
 
         else
         {
-        	printf("Error : %s Variable not declared\n",t->varname);
+        	printf("hi2Error : %s Variable not declared\n",t->varname);
+            yyerror("");
         	exit(1);
         }
         
         //now register i contains the value of the variable at a stack location which is the heap address
         //now we need to find the final value using attributes of the field node
         struct tnode* curr = t;
-        struct Typetable* curr_type = t -> left -> ttype; 
+        struct Typetable* curr_type = t -> left -> ttype;
+        struct Classtable* curr_ctype = t -> left -> ctype; 
         while(curr)
         {
-            struct Fieldlist* field = FLookup(curr_type,curr->right->varname);
-            if(!field)
+            if(curr_type)
             {
-                printf("Error : %s field does not belong to %s\n",t->right->varname,curr_type->name);
-                exit(1);
+                struct Fieldlist* field = FLookup(curr_type,curr->right->varname);
+                if(!field)
+                {
+                    printf("Error : %s field does not belong to %s\n",curr->right->varname,curr_type->name);
+                    yyerror("");
+                    exit(1);
+                }
+
+                fprintf(fp,"ADD R%d,%d\n",i,field->fieldIndex);
+                fprintf(fp,"MOV R%d,[R%d]\n",i,i);
+
+                curr_ctype = field -> ctype;
+                curr_type = field -> type;
+                curr = curr -> mid;
             }
 
-            fprintf(fp,"ADD R%d,%d\n",i,field->fieldIndex);
-            fprintf(fp,"MOV R%d,[R%d]\n",i,i);
+            else
+            {
+                struct Fieldlist* field = Class_FLookup(curr_ctype,curr->right->varname);
+                if(!field)
+                {
+                    printf("Error : %s field does not belong to %s\n",curr->right->varname,curr_ctype->name);
+                    yyerror("");
+                    exit(1);
+                }
 
-            curr_type = field -> type;
-            curr = curr -> mid;
+                fprintf(fp,"ADD R%d,%d\n",i,field->fieldIndex);
+                fprintf(fp,"MOV R%d,[R%d]\n",i,i);
+
+                curr_type = field -> type;    
+                curr_ctype = field -> ctype;
+                curr = curr -> mid;
+            }
+            
         }
 
         return i;   //value of the field node
@@ -1265,6 +1433,12 @@ int BasicCodeGen(struct tnode* t)
     else if(t->type == function_node)
     {
         int i = FunctionCodeGen(t);
+        return i;
+    }
+
+    else if(t->type == field_function_node)
+    {
+        int i = FieldFunctionCodeGen(t);
         return i;
     }
 
@@ -1332,7 +1506,9 @@ void AssignArrayCodeGen(struct tnode* t)
 
     if(idx == NULL)
     {
-       	printf("Error : %s Variable not declared",t->left->varname);
+       	printf("hi3Error : %s Variable not declared",t->left->varname);
+        yyerror("");
+        exit(1);
     }
 
     int j = BasicCodeGen(t->right);	//value of index to be accessed
@@ -1377,7 +1553,8 @@ void readCodeGen(char* c)
 
     else
     {
-        printf("Error : %s Variable not declared\n",c);
+        printf("hi4Error : %s Variable not declared\n",c);
+        yyerror("");
         exit(1);
     }
 
@@ -1451,39 +1628,78 @@ void readFieldCodeGen(struct tnode *t)
 
     else
     {
-        printf("Error : %s Variable not declared\n",t->varname);
+        printf("hi5Error : %s Variable not declared\n",t->varname);
+        yyerror("");
         exit(1);
     }
     
     //now register i contains the value of the variable at a stack location which is the heap address
 
     struct tnode* curr = t -> left;
-    struct Typetable* curr_type = t -> left -> left -> ttype; 
+    struct Typetable* curr_type = t -> left -> left -> ttype;
+    struct Classtable* curr_ctype = t -> left -> left -> ctype; 
+     
     while(curr -> mid)
     {
-        struct Fieldlist* field = FLookup(curr_type,curr->right->varname);
-        if(!field)
+        if(curr_type)
         {
-            printf("Error : %s field does not belong to %s\n",t->right->varname,curr_type->name);
+            struct Fieldlist* field = FLookup(curr_type,curr->right->varname);
+            if(!field)
+            {
+                printf("Error : %s field does not belong to %s\n",curr->right->varname,curr_type->name);
+                exit(1);
+            }
+
+            fprintf(fp,"ADD R%d,%d\n",i,field->fieldIndex);
+            fprintf(fp,"MOV R%d,[R%d]\n",i,i);
+
+            curr_type = field -> type;
+            curr_ctype = field -> ctype;
+            curr = curr -> mid;
+        }
+        else
+        {
+            struct Fieldlist* field = Class_FLookup(curr_ctype,curr->right->varname);
+            if(!field)
+            {
+                printf("Error : %s field does not belong to %s\n",curr->right->varname,curr_ctype->name);
+                exit(1);
+            }
+
+            fprintf(fp,"ADD R%d,%d\n",i,field->fieldIndex);
+            fprintf(fp,"MOV R%d,[R%d]\n",i,i);
+
+            curr_type = field -> type;
+            curr_ctype = field -> ctype;
+            curr = curr -> mid;
+        }
+        
+    }
+
+    if(curr_type)
+    {
+        struct Fieldlist* tmp_field = FLookup(curr_type,curr->right->varname);
+        if(!tmp_field)
+        {
+            printf("Error : %s field does not belong to %s\n",curr->right->varname,curr_type->name);
             exit(1);
         }
 
-        fprintf(fp,"ADD R%d,%d\n",i,field->fieldIndex);
-        fprintf(fp,"MOV R%d,[R%d]\n",i,i);
-
-        curr_type = field -> type;
-        curr = curr -> mid;
+        fprintf(fp,"ADD R%d,%d\n",i,tmp_field->fieldIndex); //register i contains the address where the value is to be stored
     }
 
-    struct Fieldlist* tmp_field = FLookup(curr_type,curr->right->varname);
-    if(!tmp_field)
+    else
     {
-        printf("Error : %s field does not belong to %s\n",t->right->varname,curr_type->name);
-        exit(1);
+        struct Fieldlist* ctmp_field = Class_FLookup(curr_ctype,curr->right->varname);
+        if(!ctmp_field)
+        {
+            printf("Error : %s field does not belong to %s\n",curr->right->varname,curr_ctype->name);
+            exit(1);
+        }
+
+        fprintf(fp,"ADD R%d,%d\n",i,ctmp_field->fieldIndex); //register i contains the address where the value is to be stored
     }
-
-    fprintf(fp,"ADD R%d,%d\n",i,tmp_field->fieldIndex); //register i contains the address where the value is to be stored
-
+    
     int j = get_reg();  //to push values in the stack
     fprintf(fp,"MOV R%d,\"Read\"\n",j);
     fprintf(fp,"PUSH R%d\n",j);
@@ -1870,7 +2086,8 @@ void AssignCodeGen(struct tnode* t)
 
     else
     {
-        printf("Error : %s Variable not declared\n",t->varname);
+        printf("hi6Error : %s Variable not declared\n",t->varname);
+        yyerror("");
         exit(1);
     }
 
@@ -1881,7 +2098,7 @@ void AssignCodeGen(struct tnode* t)
 void AssignFieldCodeGen(struct tnode* t)
 {
     int i = get_reg();
-
+    
     struct Lsymbol* curr1 = LocalLookup(t->left->left->varname);
     struct Paramstruct* curr2 = ParamLookup(t->left->left->varname);
     struct Gsymbol* curr3 = GLookup(t->left->left->varname);
@@ -1928,39 +2145,79 @@ void AssignFieldCodeGen(struct tnode* t)
 
     else
     {
-        printf("Error : %s Variable not declared\n",t->varname);
+        printf("hi7Error : %s Variable not declared\n",t->left->left->varname);
+        yyerror("");
         exit(1);
     }
     
     //now register i contains the value of the variable at a stack location which is the heap address
 
     struct tnode* curr = t -> left;
-    struct Typetable* curr_type = t -> left -> left -> ttype; 
+    struct Typetable* curr_type = t -> left -> left -> ttype;
+    struct Classtable* curr_ctype =  t -> left -> left -> ctype;
     while(curr -> mid)
     {
-        struct Fieldlist* field = FLookup(curr_type,curr->right->varname);
-        if(!field)
+        if(curr_type)
         {
-            printf("Error : %s field does not belong to %s\n",t->right->varname,curr_type->name);
+            struct Fieldlist* field = FLookup(curr_type,curr->right->varname);
+            if(!field)
+            {
+                printf("Error : %s field does not belong to %s\n",curr->right->varname,curr_type->name);
+                exit(1);
+            }
+
+            fprintf(fp,"ADD R%d,%d\n",i,field->fieldIndex);
+            fprintf(fp,"MOV R%d,[R%d]\n",i,i);
+
+            curr_type = field -> type;
+            curr_ctype = field -> ctype;
+            curr = curr -> mid;
+        }
+        else
+        {
+            struct Fieldlist* field = Class_FLookup(curr_ctype,curr->right->varname);
+            if(!field)
+            {
+                printf("Error : %s field does not belong to %s\n",curr->right->varname,curr_ctype->name);
+                exit(1);
+            }
+
+            fprintf(fp,"ADD R%d,%d\n",i,field->fieldIndex);
+            fprintf(fp,"MOV R%d,[R%d]\n",i,i);
+
+            curr_type = field -> type;
+            curr_ctype = field -> ctype;
+            curr = curr -> mid;
+        }
+        
+    }
+
+    if(curr_type)
+    {
+        struct Fieldlist* tmp_field = FLookup(curr_type,curr->right->varname);
+        if(!tmp_field)
+        {
+            printf("Error : %s field does not belong to %s\n",curr->right->varname,curr_type->name);
             exit(1);
         }
 
-        fprintf(fp,"ADD R%d,%d\n",i,field->fieldIndex);
-        fprintf(fp,"MOV R%d,[R%d]\n",i,i);
-
-        curr_type = field -> type;
-        curr = curr -> mid;
+        fprintf(fp,"ADD R%d,%d\n",i,tmp_field->fieldIndex); //register i contains the address where the value is to be stored
     }
 
-    struct Fieldlist* tmp_field = FLookup(curr_type,curr->right->varname);
-    if(!tmp_field)
+    else
     {
-        printf("Error : %s field does not belong to %s\n",t->right->varname,curr_type->name);
-        exit(1);
+        struct Fieldlist* ctmp_field = Class_FLookup(curr_ctype,curr->right->varname);
+        if(!ctmp_field)
+        {
+            printf("Error : %s field does not belong to %s\n",curr->right->varname,curr_ctype->name);
+            yyerror("");
+            exit(1);
+        }
+
+        fprintf(fp,"ADD R%d,%d\n",i,ctmp_field->fieldIndex); //register i contains the address where the value is to be stored
+        
     }
-
-    fprintf(fp,"ADD R%d,%d\n",i,tmp_field->fieldIndex); //register i contains the address where the value is to be stored
-
+    
     int j = BasicCodeGen(t->right); //register j contains the value to be assigned to the field
     fprintf(fp,"MOV [R%d],R%d\n",i,j);
 
@@ -2014,6 +2271,61 @@ int FunctionCodeGen(struct tnode* t)
     return i;   
 }
 
+int FieldFunctionCodeGen(struct tnode *t)
+{
+    //save local registers in the stack
+    int stored_reg = used;
+    for(int i=0;i<=used;i++)
+    {
+        fprintf(fp,"PUSH R%d\n",i);
+    }
+    used = -1;   //all registers are make available for the called function
+
+    //now push the heap address of field in the stack
+    int i = BasicCodeGen(t->left);
+    fprintf(fp,"PUSH R%d\n",i);
+
+    MainCodeGen(t->Arglist);
+
+    struct Memberfunclist *tmp = MLookup(t->left->ctype,t->right->varname); 
+    if(!tmp)
+    {
+        printf("%s\n%s\n",t->left->ctype->name,t->right->varname);
+        yyerror("");
+        exit(1);
+    }
+    int label = tmp -> Flabel;
+
+    fprintf(fp,"ADD SP,1\n"); //for return value
+    fprintf(fp,"CALL F%d\n",label);
+    fprintf(fp,"SUB SP,1\n");
+
+    //now pop out the arguments
+    struct Paramstruct* curr = tmp -> paramlist;
+    int parameters = 0;
+    while(curr)
+    {
+        parameters++;
+        curr = curr -> next;
+    }
+    fprintf(fp,"SUB SP,%d\n",parameters + 1);   //pop out the arguments + field address
+
+    //now pop out stored registers
+    for(int j = stored_reg;j>=0;j--)
+    {
+        fprintf(fp,"POP R%d\n",j);
+    }
+    used = stored_reg;  //setting the number of registers back to original value
+
+    //now save the return value
+    i = get_reg();
+    fprintf(fp,"MOV R%d,SP\n",i);
+    fprintf(fp,"ADD R%d,%d\n",i,stored_reg + parameters + 3);
+    fprintf(fp,"MOV R%d,[R%d]\n",i,i);  //return value stored in Ri
+
+    return i;   
+}
+
 void ArgCodeGen(struct tnode* t)
 {
 
@@ -2021,7 +2333,7 @@ void ArgCodeGen(struct tnode* t)
     {
         return;
     }
-
+    
     int i = BasicCodeGen(t->left);
     fprintf(fp,"PUSH R%d\n",i);
     free_reg();
@@ -2218,19 +2530,19 @@ void MainCodeGen(struct tnode* t)
 
 void GenerateHeader()
 {
-    fprintf(fp,"0\n");
-    fprintf(fp,"2056\n");
-    fprintf(fp,"0\n");
-    fprintf(fp,"0\n");
-    fprintf(fp,"0\n");
-    fprintf(fp,"0\n");
-    fprintf(fp,"0\n");
-    fprintf(fp,"0\n");
-    fprintf(fp,"MOV BP,%d\n",bind);
-    fprintf(fp,"MOV SP,%d\n",bind-1);
-    fprintf(fp,"ADD SP,1\n");   //for return value of main
-    fprintf(fp,"CALL MAIN\n");
-    fprintf(fp,"INT 10\n");    
+    fprintf(fp1,"0\n");
+    fprintf(fp1,"2056\n");
+    fprintf(fp1,"0\n");
+    fprintf(fp1,"0\n");
+    fprintf(fp1,"0\n");
+    fprintf(fp1,"0\n");
+    fprintf(fp1,"0\n");
+    fprintf(fp1,"0\n");
+    fprintf(fp1,"MOV BP,%d\n",bind);
+    fprintf(fp1,"MOV SP,%d\n",bind-1);
+    fprintf(fp1,"ADD SP,1\n");   //for return value of main
+    fprintf(fp1,"CALL MAIN\n");
+    fprintf(fp1,"INT 10\n");    
 }
 
 void GenerateExit()
@@ -2250,7 +2562,6 @@ void GenerateExit()
     fprintf(fp,"POP R%d\n",j);
     
     free_reg(); 
-
 }
 
 void GenerateCode(struct tnode* t)
@@ -2262,16 +2573,6 @@ void GenerateCode(struct tnode* t)
     GenerateExit();
 }
 
-
-void printTree(struct tnode* t)
-{
-	if(t==NULL)
-		return;
-
-	printf("left ");printTree(t->left);
-	printf("Mid :Type : %d\n",t->type);
-	printf("right ");printTree(t->right);
-}
 
 
 

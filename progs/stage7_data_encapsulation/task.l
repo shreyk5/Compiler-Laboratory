@@ -21,13 +21,19 @@ char [a-z]*
 "alloc" {return ALLOC;}
 "free"  {return FREE;}
 "null"  {return SENTINEL;}
-"initialize"    {yylval.node = createTree(0,NULL,init_node,TLookup("void"),NULL,NULL,NULL,NULL); return INITIALIZE;}
+"initialize"    {yylval.node = createTree(0,NULL,init_node,TLookup("void"),NULL,NULL,NULL,NULL,NULL); return INITIALIZE;}
 "int"	{return INT;}
 "str" 	{return STR;}
 "enddecl"	{return ENDDECL;}
 "class" {return CLASS;}
 "endclass"  {return ENDCLASS;}
-"self"  {return SELF;}
+
+"self"  {
+            str = strdup(yytext);
+            yylval.node = createTree(0,NULL,var_node,NULL,NULL,str,(tnode*)NULL,(tnode*)NULL,(tnode*)NULL);
+            return SELF;
+        }
+
 "new"   {return NEW;}
 "delete"    {return DELETE;}
 "extends"   {return EXTENDS;}
@@ -44,23 +50,23 @@ char [a-z]*
 "repeat" {return REPEAT;}
 "until"	{return UNTIL;}
 "endwhile"  {return ENDWHILE;}
-"break" {yylval.node = createTree(0,NULL,break_node,TLookup("void"),NULL,NULL,NULL,NULL); return BREAK;}
-"continue" {yylval.node = createTree(0,NULL,continue_node,TLookup("void"),NULL,NULL,NULL,NULL); return CONTINUE;}
+"break" {yylval.node = createTree(0,NULL,break_node,TLookup("void"),NULL,NULL,NULL,NULL,NULL); return BREAK;}
+"continue" {yylval.node = createTree(0,NULL,continue_node,TLookup("void"),NULL,NULL,NULL,NULL,NULL); return CONTINUE;}
 
 [_a-zA-Z][_a-zA-Z0-9]* { 
                             str = strdup(yytext); 
-                            yylval.node = createTree(0,NULL,var_node,TLookup("int"),str,(tnode*)NULL,(tnode*)NULL,(tnode*)NULL);                                                                                                                     
+                            yylval.node = createTree(0,NULL,var_node,TLookup("int"),NULL,str,(tnode*)NULL,(tnode*)NULL,(tnode*)NULL);                                                                                                                     
                             return ID;      
                        }
 
-{num}   {n = atoi(yytext); yylval.node = createTree(n,NULL,num_node,TLookup("int"),(char*)NULL,(tnode*)NULL,(tnode*)NULL,(tnode*)NULL); return NUM;}
+{num}   {n = atoi(yytext); yylval.node = createTree(n,NULL,num_node,TLookup("int"),NULL,(char*)NULL,(tnode*)NULL,(tnode*)NULL,(tnode*)NULL); return NUM;}
 
 [\"](.)*[\"] {
 
 	//printf("%s\n",yytext);
 	str = (char*)malloc(sizeof(char)*(yyleng));
 	str = strdup(yytext);
-	yylval.node = createTree(-1,str,str_node,TLookup("string"),NULL,(tnode*)NULL,(tnode*)NULL,(tnode*)NULL); 
+	yylval.node = createTree(-1,str,str_node,TLookup("string"),NULL,NULL,(tnode*)NULL,(tnode*)NULL,(tnode*)NULL); 
 	return STRING;
 }
 "."     {return *yytext;}
