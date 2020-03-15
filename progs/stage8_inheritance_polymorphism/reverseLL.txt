@@ -1,0 +1,87 @@
+type
+  List
+  {
+    int data;
+    List next;
+  }
+endtype
+
+decl
+    List head,tail;
+    List tmp,p;
+    List insert(int val);
+    List reverse(List curr,List h,List t);
+enddecl
+
+List insert(int val)
+{
+    begin
+    if(head == null) then
+        tmp = alloc();
+        tmp.data = val;
+        tmp.next = null;
+        tail = tmp;
+        head = tmp;
+    else
+        tmp = alloc();
+        tmp.data = val;
+        tmp.next = null;
+        tail.next = tmp;
+        tail = tmp;
+    endif;
+
+    return head;
+
+    end
+}
+
+List reverse(List curr,List h,List t)
+{
+    begin
+    if(curr == null) then
+        t = null;
+    else
+
+        if(curr.next == null) then
+        head = curr;
+        t = head;
+        else
+        t = reverse(curr.next,h,t);
+        curr.next.next = curr;
+        curr.next = null;
+        head = t;
+        endif;
+    endif;
+    
+    return t;
+    end
+}
+
+
+int main()
+{
+  decl
+    int x;
+  enddecl
+
+  begin
+    initialize();
+    
+    head=null;
+
+    read(x);    
+    while(x!=0) do
+      head = insert(x);
+      read(x);
+    endwhile;
+
+    head = reverse(head,head,tmp);
+    p=head;
+    while(p!=null)  do
+      write(p.data);
+      p=p.next;
+    endwhile;
+
+    return 1;
+  end
+}
