@@ -3,7 +3,7 @@
 	#include<stdlib.h>
 	#include<string.h>
 	#include "task.h"
-	FILE *fp, *fp1;
+	FILE *fp, *fp1, *fp2;
 	FILE *fp_read;
 	struct Typetable *Thead = NULL, *Ttail = NULL;	//points to the head and tail of Typetable list
 	struct Typetable *DeclType = NULL;	//points to the Typetable entry for the current type
@@ -91,6 +91,7 @@ TypeName :	INT	{DeclType = TLookup("int");}
 
 //--------------------------------------CLASS DECLARATION-----------------------------------
 ClassDefBlock : CLASS ClassDefList ENDCLASS	{}
+
 			|								{}
             ;
 
@@ -109,7 +110,23 @@ ClassDef : Cname '{' DECL CFieldlists CMethodDecls ENDDECL CMethodDefns '}'	{
 																				class = NULL;
 																				inheritance = 0;
 																				Fhead = Ftail = NULL;
-																			    Mfhead = Mftail = NULL;    
+																			    Mfhead = Mftail = NULL;
+																				bind += 8;    
+																			}
+																			
+		|	Cname '{' DECL CMethodDecls ENDDECL CMethodDefns '}'			{
+																				//set the function list and fieldlist
+																				if(!final_installation)
+																				{
+																					final_installation = 1;
+																					CInstallFinal();
+																				}
+
+																				class = NULL;
+																				inheritance = 0;
+																				Fhead = Ftail = NULL;
+																			    Mfhead = Mftail = NULL;
+																				bind += 8;    
 																			}
 		;
 
@@ -248,7 +265,17 @@ GidList : GidList ',' Gid
 		| Gid
 		;
 
-Gid : ID                   	{GInstall($1->varname,DeclType,DeclClass,0,1);}
+Gid : ID                   	{
+								if(!DeclClass)	//non-class variable
+								{
+									GInstall($1->varname,DeclType,DeclClass,0,1);
+								}
+								else	//class variable
+								{
+									GInstall($1->varname,DeclType,DeclClass,0,2);
+								}
+							}
+
 	| ID '[' NUM ']'        {
 								if(DeclClass)
 								{
@@ -523,16 +550,23 @@ asgStmt :	ID ASSIGN expr ';'    		{
 											$$ = createTree(0,NULL,assignArray_node,TLookup("void"),NULL,NULL,$1,$3,$6);
 										}
 		
-		|	FIELD ASSIGN expr ';'    	{		
-											//checkID($1->varname);    
-											//AssignCheckType($1,$3);
+		|	FIELD ASSIGN expr ';'    	{
+											AssignCheckType($1,$3);		
 											$$ = createTree(0,NULL,assign_field_node,TLookup("void"),NULL,NULL,$1,$3,NULL);
 										}
 			
 
 		|	ID ASSIGN ALLOC	'(' ')' ';'	{
-											struct tnode* tmp = createTree(0,NULL,alloc_node,TLookup("dummy"),NULL,NULL,NULL,NULL,NULL);
+											checkID($1->varname);
+											//type of ID should not be int,string
+											if($1->ttype == TLookup("string") || $1->ttype == TLookup("int"))
+											{
+												printf("Error: %s is not a user-defined type\n",$1->varname);
+												yyerror("");
+												exit(1);
+											}
 
+											struct tnode* tmp = createTree(0,NULL,alloc_node,TLookup("dummy"),NULL,NULL,NULL,NULL,NULL);
 											$$ = createTree(0,NULL,assign_node,TLookup("void"),NULL,NULL,$1,tmp,NULL);
 										}
 		
@@ -592,10 +626,42 @@ asgStmt :	ID ASSIGN expr ';'    		{
 											}
 
 		|	FREE '(' ID ')' ';'			{
+											if(!$3->ctype)
+											{
+												printf("Error:%s is not a class variable\n",$3->varname);
+												yyerror("");
+												exit(1);
+											}
 											$$ = createTree(0,NULL,free_node,TLookup("void"),NULL,NULL,$3,NULL,NULL);
 										}
 
 		|	FREE '(' FIELD ')' ';'		{
+											if(!$3->ctype)
+											{
+												printf("Error: not a class variable\n");
+												yyerror("");
+												exit(1);
+											}
+											$$ = createTree(0,NULL,free_node,TLookup("void"),NULL,NULL,$3,NULL,NULL);
+										}
+
+		|	DELETE '(' ID ')' ';'		{
+											if(!$3->ctype)
+											{
+												printf("Error:%s is not a class variable\n",$3->varname);
+												yyerror("");
+												exit(1);
+											}
+											$$ = createTree(0,NULL,free_node,TLookup("void"),NULL,NULL,$3,NULL,NULL);
+										}
+
+		|	DELETE '(' FIELD ')' ';'	{
+											if(!$3->ctype)
+											{
+												printf("Error: not a class variable\n");
+												yyerror("");
+												exit(1);
+											}
 											$$ = createTree(0,NULL,free_node,TLookup("void"),NULL,NULL,$3,NULL,NULL);
 										}
 		;
@@ -880,7 +946,12 @@ expr : expr PLUS expr   {
 						}                      
 
 	| '(' expr ')'      {$$ = $2;}
-	|  ID               {checkID($1->varname); $$ = $1;}
+	|  ID               {
+							checkID($1->varname);
+
+							$$ = $1;
+						}
+
 	|  ID '[' expr ']'  {
 							checkID($1->varname); 
 							CheckIfArray($1->varname);
@@ -937,6 +1008,7 @@ int main(int argc,char* argv[])
 
    	fp = fopen("/home/shrey/xsm_expl/progs/stage8_inheritance_polymorphism/tmp.xsm","w");
 	fp1 = fopen("input.xsm","w");
+	fp2 = fopen("tmp2.xsm","w");
    	fp_read = fopen(argv[1],"r");
   	yyin = fp_read;
 

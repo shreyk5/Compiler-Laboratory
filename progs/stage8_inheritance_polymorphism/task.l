@@ -61,8 +61,8 @@ char [a-z]*
 
 {num}   {n = atoi(yytext); yylval.node = createTree(n,NULL,num_node,TLookup("int"),NULL,(char*)NULL,(tnode*)NULL,(tnode*)NULL,(tnode*)NULL); return NUM;}
 
-[\"](.)*[\"] {
-
+\"(\\.|[^\\\"])*\" {
+    
 	//printf("%s\n",yytext);
 	str = (char*)malloc(sizeof(char)*(yyleng));
 	str = strdup(yytext);

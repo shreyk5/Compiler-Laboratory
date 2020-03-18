@@ -3,6 +3,37 @@ using namespace std;
 
 const int inf = 1e9;
 
+bool check(string s,int i,int j)
+{
+	int n = s.length();
+	bool ok1 = 0 ,ok2 = 0;
+	while(i>=0)
+	{
+		if(s[i] == '"')
+		{
+			ok1 = 1;
+			break;
+		}
+		i--;
+	}
+
+	while(j<n)
+	{
+		if(s[j] == '"')
+		{
+			ok2 = 1;
+			break;
+		}
+		j++;
+	}
+
+	if(ok1 && ok2)
+	{
+		return 0;
+	}
+	return 1;
+}
+
 int main()
 {
 	ifstream fp0("input.xsm");
@@ -35,7 +66,7 @@ int main()
 							while(j<n)
 							{
 								//cout<<s[j];
-								if(s[j] == ':')
+								if(s[j] == ':' && check(s,i,j))
 								{
 									store = 1;
 									break;
@@ -94,7 +125,7 @@ int main()
 						while(j<n)
 						{
 							//test += s[j];
-							if(s[j] == ':')
+							if(s[j] == ':' && check(s,i,j))
 							{
 								poss = 0;
 								start = max(start,j+2);
@@ -106,7 +137,7 @@ int main()
 					}
 
 					j = save_j;
-					if((test == "LABEL" || test == "F" || test == "MAIN") && poss)
+					if((test == "LABEL" || test == "F" || test == "MAIN") && poss && check(s,i,j))
 					{
 						//cout<<"hi";
 

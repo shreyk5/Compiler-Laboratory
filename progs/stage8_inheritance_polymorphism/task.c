@@ -29,6 +29,7 @@ struct tnode* createTree(int val, char* str_val, int type, struct Typetable* tty
         }
         else if(curr3)
         {
+            tmp -> ctype = curr3 -> ctype;
             tmp -> ttype = curr3 -> type;
         }
     }
@@ -149,11 +150,59 @@ void CheckIfArray(char* varname)
 
 void AssignCheckType(struct tnode* t1,struct tnode* t2)
 {
-	if(t1->ttype != t2->ttype && (t1->ttype!=TLookup("dummy") && t2->ttype!=TLookup("dummy")))
+    if(t1->ttype == t2->ttype)  //when both of them are same type or both are class variables
+    {
+        checkDescendant(t1->ctype,t2->ctype);
+    }
+    
+    else if(t2->ttype == TLookup("dummy") && (t1->ttype != TLookup("int") && t1->ttype != TLookup("string")))
+    {
+
+    }
+	else
     {
         printf("Error:Type mismatch of operands in assign\n");
         yyerror("");
         exit(1);
+    }
+}
+
+void checkDescendant(struct Classtable *c1,struct Classtable *c2)
+{
+    //check if c1 is parent class and c2 is a descendant
+    if(!c1 && !c2)
+    {
+        return;
+    }
+    else
+    {
+        if(c1 && c2)
+        {
+            if(!strcmp(c1->name,c2->name))
+            {
+                return;
+            }
+
+            struct Classtable *par = c2 -> Parentptr;
+            while (par)
+            {
+                if(!strcmp(par->name,c1->name))
+                {
+                    return;
+                }
+                par = par -> Parentptr;
+            }
+
+            printf("Error:Not a descendant\n");
+            yyerror("");
+            exit(1);
+        }
+        else
+        {
+            printf("Error:Not a descendant\n");
+            yyerror("");
+            exit(1);
+        }
     }
 }
 
@@ -377,7 +426,7 @@ void InsertSelfToParam()
     strcpy(tmp->name,"self");
     tmp -> type = NULL;
     tmp -> ctype = class;
-    tmp -> binding = 0;
+    tmp -> binding = bind_param-1;
     tmp -> next = NULL;
 
     if(head == NULL)
@@ -663,7 +712,7 @@ void CheckInformalParamList(struct Paramstruct* formal_param,struct tnode* t)  /
 
     if(cnt_informal != cnt_formal)
     {
-        printf("%s Incorrect no. of arguments",t->left->varname);
+        printf("%s Incorrect no. of arguments:%d, %d\n",t->left->varname,cnt_formal,cnt_informal);
         yyerror("");
         exit(1);
     }
@@ -950,7 +999,7 @@ struct Classtable* CInstall(char *name,char *parent_name)
     tmp -> name = name;
     tmp -> Memberfield = NULL;  //will be set by final installation
     tmp -> Vfuncptr = NULL;     //will be set by final installation
-    tmp -> Parentptr = NULL;    //in later stages
+    tmp -> Parentptr = NULL;    
     if(parent_name)
     {
         if(!CLookup(parent_name))
@@ -1099,6 +1148,36 @@ void InheritMemberFields(char *class_name)
         Class_FieldInstall(curr->name,curr->type,curr->ctype);
         curr = curr -> next;
     }
+}
+
+void SetupVirtualTable()
+{
+    fprintf(fp1,"MOV SP,4095\n");
+
+    struct Classtable *c = Chead;
+    int i = get_reg();
+    while(c)
+    {
+        int j = 0;
+        struct Memberfunclist *curr = c -> Vfuncptr;			
+        while(curr)
+        {
+            fprintf(fp1,"MOV R%d,F%d\n",i,curr -> Flabel);
+            fprintf(fp1,"PUSH R%d\n",i);
+
+            j++;    
+            curr = curr -> next;        
+        }
+
+        fprintf(fp1,"MOV R%d,-1\n",i);
+        for(;j<8;j++)
+        {
+            fprintf(fp1,"PUSH R%d\n",i);
+        }
+
+        c = c -> next;	
+    }
+    free_reg();
 }
 
 void Class_MethodInstall(char *function_name,struct Typetable *type,struct Paramstruct* plist)
@@ -1343,29 +1422,9 @@ int BasicCodeGen(struct tnode* t)
         }
 
         else if(curr2)
-        {
-            int cnt = 0,cnt1 = 0;
-            struct Paramstruct* curr = head;
-
-            while(curr)
-            {
-                curr = curr -> next;
-                cnt++;
-            }
-
-            curr = head;
-            while(curr)
-            {
-                cnt1++;
-                if(strcmp(curr -> name,t->varname) == 0)
-                {
-                    break;
-                }
-                curr = curr -> next;
-            }
-
+        { 
             fprintf(fp,"MOV R%d,BP\n",i);
-            fprintf(fp,"SUB R%d,%d\n",i,2+cnt1);
+            fprintf(fp,"ADD R%d,%d\n",i,curr2->binding);
             fprintf(fp,"MOV R%d,[R%d]\n",i,i);
 
             return i;
@@ -1381,7 +1440,7 @@ int BasicCodeGen(struct tnode* t)
 
         else
         {
-        	printf("hi1Error : %s Variable not declared\n",t->varname);
+        	printf("Error : %s Variable not declared\n",t->varname);
             yyerror("");
         	exit(1);
         }
@@ -1405,28 +1464,8 @@ int BasicCodeGen(struct tnode* t)
 
         else if(curr2)
         {
-            int cnt = 0,cnt1 = 0;
-            struct Paramstruct* curr = head;
-
-            while(curr)
-            {
-                curr = curr -> next;
-                cnt++;
-            }
-
-            curr = head;
-            while(curr)
-            {
-                cnt1++;
-                if(strcmp(curr -> name,t->left->varname) == 0)
-                {
-                    break;
-                }
-                curr = curr -> next;
-            }
-
             fprintf(fp,"MOV R%d,BP\n",i);
-            fprintf(fp,"SUB R%d,%d\n",i,2+cnt1);
+            fprintf(fp,"ADD R%d,%d\n",i,curr2->binding);
             fprintf(fp,"MOV R%d,[R%d]\n",i,i);
         }
 
@@ -1693,28 +1732,8 @@ void readFieldCodeGen(struct tnode *t)
 
     else if(curr2)
     {
-        int cnt = 0,cnt1 = 0;
-        struct Paramstruct* curr = head;
-
-        while(curr)
-        {
-            curr = curr -> next;
-            cnt++;
-        }
-
-        curr = head;
-        while(curr)
-        {
-            cnt1++;
-            if(strcmp(curr -> name,t->left->left->varname) == 0)
-            {
-                break;
-            }
-            curr = curr -> next;
-        }
-
         fprintf(fp,"MOV R%d,BP\n",i);
-        fprintf(fp,"SUB R%d,%d\n",i,2+cnt1);
+        fprintf(fp,"ADD R%d,%d\n",i,curr2->binding);
         fprintf(fp,"MOV R%d,[R%d]\n",i,i);
     }
 
@@ -2184,22 +2203,35 @@ void AssignCodeGen(struct tnode* t)
 
     else
     {
-        printf("hi6Error : %s Variable not declared\n",t->varname);
+        printf("Error : %s Variable not declared\n",t->varname);
         yyerror("");
         exit(1);
+    }
+
+    if(t->mid)
+    {
+        int VTable_idx = CLookup(t->mid->varname) -> Class_index;
+        fprintf(fp,"MOV R%d,%d\n",i , 4096 + 8*VTable_idx);
+        fprintf(fp,"MOV [%d],R%d\n",curr3 -> binding + 1,i);
+    }
+    else if(t->right->ctype)
+    {
+        int x = GLookup(t->right->varname) -> binding + 1;
+        fprintf(fp,"MOV R%d,[%d]\n",i,x);
+        fprintf(fp,"MOV [%d],R%d\n",curr3 -> binding + 1,i);
     }
 
     free_reg();
     free_reg();
 }
 
-void AssignFieldCodeGen(struct tnode* t)
+int getFieldAddress(struct tnode *t)
 {
     int i = get_reg();
     
-    struct Lsymbol* curr1 = LocalLookup(t->left->left->varname);
-    struct Paramstruct* curr2 = ParamLookup(t->left->left->varname);
-    struct Gsymbol* curr3 = GLookup(t->left->left->varname);
+    struct Lsymbol* curr1 = LocalLookup(t->left->varname);
+    struct Paramstruct* curr2 = ParamLookup(t->left->varname);
+    struct Gsymbol* curr3 = GLookup(t->left->varname);
 
     if(curr1)
     {
@@ -2210,28 +2242,8 @@ void AssignFieldCodeGen(struct tnode* t)
 
     else if(curr2)
     {
-        int cnt = 0,cnt1 = 0;
-        struct Paramstruct* curr = head;
-
-        while(curr)
-        {
-            curr = curr -> next;
-            cnt++;
-        }
-
-        curr = head;
-        while(curr)
-        {
-            cnt1++;
-            if(strcmp(curr -> name,t->left->left->varname) == 0)
-            {
-                break;
-            }
-            curr = curr -> next;
-        }
-
         fprintf(fp,"MOV R%d,BP\n",i);
-        fprintf(fp,"SUB R%d,%d\n",i,2+cnt1);
+        fprintf(fp,"ADD R%d,%d\n",i,curr2->binding);
         fprintf(fp,"MOV R%d,[R%d]\n",i,i);
     }
 
@@ -2243,16 +2255,16 @@ void AssignFieldCodeGen(struct tnode* t)
 
     else
     {
-        printf("hi7Error : %s Variable not declared\n",t->left->left->varname);
+        printf("Error : %s Variable not declared\n",t->left->varname);
         yyerror("");
         exit(1);
     }
     
     //now register i contains the value of the variable at a stack location which is the heap address
 
-    struct tnode* curr = t -> left;
-    struct Typetable* curr_type = t -> left -> left -> ttype;
-    struct Classtable* curr_ctype =  t -> left -> left -> ctype;
+    struct tnode* curr = t;
+    struct Typetable* curr_type = t -> left -> ttype;
+    struct Classtable* curr_ctype =  t -> left -> ctype;
     while(curr -> mid)
     {
         if(curr_type)
@@ -2313,11 +2325,25 @@ void AssignFieldCodeGen(struct tnode* t)
         }
 
         fprintf(fp,"ADD R%d,%d\n",i,ctmp_field->fieldIndex); //register i contains the address where the value is to be stored
-        
     }
-    
+
+    return i;
+}
+
+void AssignFieldCodeGen(struct tnode* t)
+{
+
     int j = BasicCodeGen(t->right); //register j contains the value to be assigned to the field
+    int i = getFieldAddress(t->left);
     fprintf(fp,"MOV [R%d],R%d\n",i,j);
+
+    if(t->mid)
+    {
+        int VTable_idx = CLookup(t->mid->varname) -> Class_index;
+        fprintf(fp,"MOV R%d,%d\n",j, 4096 + 8*VTable_idx);
+        fprintf(fp,"ADD R%d,1\n",i);
+        fprintf(fp,"MOV [R%d],R%d\n",i,j);
+    }
 
     free_reg();
     free_reg();
@@ -2382,6 +2408,10 @@ int FieldFunctionCodeGen(struct tnode *t)
     //now push the heap address of field in the stack
     int i = BasicCodeGen(t->left);
     fprintf(fp,"PUSH R%d\n",i);
+    free_reg();
+
+    i = getVFTPtr(t->left);
+    fprintf(fp,"PUSH R%d\n",i);
 
     MainCodeGen(t->Arglist);
 
@@ -2392,10 +2422,13 @@ int FieldFunctionCodeGen(struct tnode *t)
         yyerror("");
         exit(1);
     }
-    int label = tmp -> Flabel;
+    int func_pos = tmp -> FuncPosition;
+    fprintf(fp,"ADD R%d,%d\n",i,func_pos);
+    fprintf(fp,"MOV R%d,[R%d]\n",i,i);
 
     fprintf(fp,"ADD SP,1\n"); //for return value
-    fprintf(fp,"CALL F%d\n",label);
+    free_reg();
+    fprintf(fp,"CALL R%d\n",i);
     fprintf(fp,"SUB SP,1\n");
 
     //now pop out the arguments
@@ -2406,7 +2439,7 @@ int FieldFunctionCodeGen(struct tnode *t)
         parameters++;
         curr = curr -> next;
     }
-    fprintf(fp,"SUB SP,%d\n",parameters + 1);   //pop out the arguments + field address
+    fprintf(fp,"SUB SP,%d\n",parameters + 2);   //pop out the arguments + field address + virtual table ptr
 
     //now pop out stored registers
     for(int j = stored_reg;j>=0;j--)
@@ -2418,10 +2451,42 @@ int FieldFunctionCodeGen(struct tnode *t)
     //now save the return value
     i = get_reg();
     fprintf(fp,"MOV R%d,SP\n",i);
-    fprintf(fp,"ADD R%d,%d\n",i,stored_reg + parameters + 3);
+    fprintf(fp,"ADD R%d,%d\n",i,stored_reg + parameters + 4);
     fprintf(fp,"MOV R%d,[R%d]\n",i,i);  //return value stored in Ri
 
     return i;   
+}
+
+int getVFTPtr(struct tnode *t)
+{
+    int i;
+    if(t->type == field_node)
+    {
+        i = getFieldAddress(t);
+        fprintf(fp,"ADD R%d,1\n",i);
+        fprintf(fp,"MOV R%d,[R%d]\n",i,i);
+    }
+    else
+    {
+        i = get_reg();
+        struct Gsymbol *curr1 = GLookup(t->varname);
+        struct Paramstruct *curr2 = ParamLookup(t->varname);
+
+        if(curr2)
+        {
+            fprintf(fp,"MOV R%d,BP\n",i);
+            fprintf(fp,"ADD R%d,%d\n",i,curr2->binding + 1);
+            fprintf(fp,"MOV R%d,[R%d]\n",i,i);
+        }
+        else
+        {
+            int j = GLookup(t->varname)->binding + 1;
+            fprintf(fp,"MOV R%d,%d\n",i,j);
+            fprintf(fp,"MOV R%d,[R%d]\n",i,i);        
+        }    
+    }
+    
+    return i;
 }
 
 void ArgCodeGen(struct tnode* t)
@@ -2636,11 +2701,13 @@ void GenerateHeader()
     fprintf(fp1,"0\n");
     fprintf(fp1,"0\n");
     fprintf(fp1,"0\n");
+    SetupVirtualTable();
     fprintf(fp1,"MOV BP,%d\n",bind);
     fprintf(fp1,"MOV SP,%d\n",bind-1);
     fprintf(fp1,"ADD SP,1\n");   //for return value of main
     fprintf(fp1,"CALL MAIN\n");
     fprintf(fp1,"INT 10\n");    
+
 }
 
 void GenerateExit()
